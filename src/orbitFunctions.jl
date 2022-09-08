@@ -21,9 +21,9 @@ Initialize an orbit propagator object given the path to a TLE file
 # Arguments
 - `tleString::String`: path to TLE file.
 """
-function orbitInit(tleString::String)
+function orbitInit(tleString::String, copies=1)
     tle = read_tle(tleString)[1]
-    propagator = init_orbit_propagator(Val(:sgp4), tle)
+    propagatorsArray = [init_orbit_propagator(Val(:sgp4), tle) for copy in range(1, copies)]
 end
 
 """
@@ -34,16 +34,11 @@ Propagate the orbit and return the magnetic field, the sun vectors and eclipse f
 - 'totalTime': length of time for which to run
 """
 function getReferenceVectors(
-    propagator::OrbitPropagatorSGP4{Float64},
-    timestep::Float64,
-    totalTime::Float64,
+    propagatorsArray::Vector{OrbitPropagatorSGP4{Float64}},
+    timeOffsets,
 )
 
-    timeOffsets = 0:timestep:totalTime
-
-    propagatorsArray = [deepcopy(propagator) for time in timeOffsets] # NEED TO REVISIT
-
-    initialJulianDate = propagator.sgp4d.epoch
+    initialJulianDate = propagatorsArray[1].sgp4d.epoch
 
     julianDate = initialJulianDate .+ (timeOffsets / secondsInDay)
 
@@ -56,6 +51,7 @@ function getReferenceVectors(
     decimalGregorianDate =
         years .+ (months[2] .- 1) / monthsInYear .+
         (days .- 1) / averageMonthDays / monthsInYear
+
 
     satelliteDataECI = propagate!.(propagatorsArray, timeOffsets)
     positionECI = [Vector{Float64}(x[1]) for x in satelliteDataECI]
