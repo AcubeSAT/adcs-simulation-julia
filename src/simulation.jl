@@ -1,17 +1,12 @@
 function calculate_orbit(JD, n_orbits)
-    # Declare simulation initial Epoch
     epc0 = Epoch(jd_to_caldate(JD)...)
-    # Declare initial state in terms of osculating orbital elements
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
 
-    # Convert osculating elements to Cartesian state
     eci0 = sOSCtoCART(oe0, use_degrees=true)
 
-    # Set the propagation end time to one orbit period after the start
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
 
-    # Initialize State Vector
     orb = EarthInertialState(epc0, eci0, dt=1.0,
         mass=100.0, n_grav=20, m_grav=20,
         drag=true, srp=true,
@@ -19,7 +14,6 @@ function calculate_orbit(JD, n_orbits)
         relativity=false
     )
 
-    # Propagate the orbit
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
 end
@@ -52,14 +46,8 @@ function run_groundtruth_simulation(params)
     q_history = Array{Float64}(undef, 4, length(epc))
     bias_history = Array{Float64}(undef, 3, length(epc))
 
-    # Dynamics
-
     for i in 1:length(epc)
         w, q = rk4(params.inertia_matrix, w, torque, q, params.dt)
-        # dw_dt, dq_dt =  derivatives(I, w, torque, q)
-        # q = q + dq_dt * params.dt
-        # q = q/norm(q)
-        # w = w + dw_dt * params.dt
         w_history[:, i] = w
         q_history[:, i] = q
     end
@@ -81,13 +69,13 @@ end
 function run_filter_simulation(tunable_params, params, mag_noisy, sun_noisy, mag_eci, sun_eci, gyroscope_measurement)
 
     kf = KalmanFilter(
-        transition_function,             # F (state transition model)
+        transition_function,
         transition_function_jacobian,
-        tunable_params[1],        # Q (process noise covariance)
-        measurement_function, # H (observation model)
+        tunable_params[1],
+        measurement_function,
         measurement_fun_jacobian,
-        tunable_params[2],        # R (observation noise covariance)
-        params.dt             # I (identity matrix)
+        tunable_params[2],
+        params.dt
     )
     state = [1.0; 0.0; 0.0; 0; 0; 0; 0]
     P = 1.0 * Matrix{Float64}(I, 6, 6)
@@ -95,7 +83,6 @@ function run_filter_simulation(tunable_params, params, mag_noisy, sun_noisy, mag
     N = size(mag_noisy, 2)
     state_estimation_array = Matrix{Float64}(undef, 7, N) # pre-allocate
 
-    # Main loop
     for i in 1:size(mag_noisy_history)[2]
         state, P = update(state, P, kf, (mag_noisy[:, i], sun_noisy[:, i]), (mag_eci[i], sun_eci[i]))
         state, P = predict(state, P, kf, gyroscope_measurement[:, i])

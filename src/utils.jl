@@ -29,14 +29,10 @@ function quaternion_conjugate(q::Vector{Float64})
 end
 
 function rotate_vector_by_quaternion(v::AbstractVector, q::Vector{Float64})
-    # Represent the vector as a pure quaternion
     v_quaternion = [0.0; v]
-    
-    # Compute the rotated vector
-    # v_rotated_quaternion = quat_mult(q, quat_mult(v_quaternion, quaternion_conjugate(q)))
+
     v_rotated_quaternion = quat_mult( quaternion_conjugate(q), quat_mult(v_quaternion, q) );
 
-    # Extract the vector part
     v_rotated = v_rotated_quaternion[2:4]
 
     return v_rotated
@@ -66,7 +62,6 @@ function julian_to_gregorian(jd::Real)
     month = (E < 14) ? E - 1 : E - 13
     year = (month > 2) ? C - 4716 : C - 4715
     
-    # Calculate time components
     F_day = day - floor(day)
     hour = floor(F_day * 24)
     minute = floor((F_day * 24 - hour) * 60)

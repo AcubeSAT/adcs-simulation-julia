@@ -1,12 +1,10 @@
 mutable struct KalmanFilter
-    # global_state::Vector{Float64}  # Global state vector  [1:4 quaternion 5:7 bias]
-    # P::Matrix{Float64}  # State covariance matrix
-    transition_fun::Function  # State transition model
+    transition_fun::Function
     transition_fun_jacobian::Function
-    Q::Matrix{Float64}  # Process noise covariance
-    measurement_fun::Function  # Observation model
+    Q::Matrix{Float64}
+    measurement_fun::Function
     measurement_fun_jacobian::Function
-    R::Matrix{Float64}  # Observation noise covariance
+    R::Matrix{Float64}
     dt::Float64
 end
 
@@ -16,9 +14,6 @@ function predict(state, P, kf::KalmanFilter, gyroscope_measurement)
     F_k = kf.transition_fun_jacobian(gyroscope_measurement, bias)
     kf.transition_fun(q, gyroscope_measurement, bias, dt)
     new_state = kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
-    # if new_state[1] < 0.0
-    #     new_state[1:4] = -new_state[1:4]
-    # end
     Phi = exp(F_k * kf.dt)
     new_P = Phi *  P * transpose(Phi) + kf.Q
     return (new_state, new_P)
@@ -44,18 +39,12 @@ function update(state, P, kf::KalmanFilter, groundtruth_measurements::Tuple, ref
     
     new_P = (identity_matrix .- Kg * H_k) * P
     new_state = [new_q;new_bias]
-    # if new_state[1] < 0.0
-    #     new_state[1:4] = -new_state[1:4]
-    # end
     return (new_state, new_P)
 end
 
 function transition_function(q, gyroscope_measurement, bias, dt)
     w = gyroscope_measurement - bias
     q = quat_mult(q,quaternion_exp([0;w]*dt))
-    # torque = zeros(3)
-    # dummy_I = I(3)
-    # q = rk4_filter(I, w, torque, q, dt)
     next_state = vcat(q,bias)
 end
 

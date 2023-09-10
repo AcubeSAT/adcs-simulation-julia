@@ -18,13 +18,10 @@ function objective_function(x)
     loss = Flux.mse(gt_target[1:4,:], state_estimation_history[1:4,:])
 end
 
-# # Initial guess
 initial_x = [-9,-10.6,-6.5,-13]
 
-# Perform optimization using Nelder-Mead method
 result = optimize(objective_function, initial_x, NelderMead(), Optim.Options(iterations = 100, show_trace=true, g_tol=1e-15))
 
-# Extract optimized parameters
 optimized_x = Optim.minimizer(result)
 
 tunable_params = package_weights(optimized_x)
