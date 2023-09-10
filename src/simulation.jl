@@ -82,7 +82,7 @@ function run_filter_simulation(tunable_params, params, mag_noisy, sun_noisy, mag
     N = size(mag_noisy, 2)
     state_estimation_array = Matrix{Float64}(undef, 7, N) # pre-allocate
 
-    for i in 1:size(mag_noisy_history)[2]
+    for i in 1:size(mag_noisy)[2]
         state, P = update(state, P, kf, (mag_noisy[:, i], sun_noisy[:, i]), (mag_eci[i], sun_eci[i]))
         state, P = predict(state, P, kf, gyroscope_measurement[:, i])
         state_estimation_array[:, i] = state

@@ -12,7 +12,7 @@ function predict(state, P, kf::KalmanFilter, gyroscope_measurement)
     bias = state[5:7]
     q = state[1:4]
     F_k = kf.transition_fun_jacobian(gyroscope_measurement, bias)
-    kf.transition_fun(q, gyroscope_measurement, bias, dt)
+    kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
     new_state = kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
     Phi = exp(F_k * kf.dt)
     new_P = Phi *  P * transpose(Phi) + kf.Q
