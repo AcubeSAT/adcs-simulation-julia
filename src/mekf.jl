@@ -45,12 +45,12 @@ end
 function transition_function(q, gyroscope_measurement, bias, dt)
     w = gyroscope_measurement - bias
     q = quat_mult(q,quaternion_exp([0;w]*dt))
-    next_state = vcat(q,bias)
+    return vcat(q,bias)
 end
 
 function transition_function_jacobian(gyroscope_measurement, bias)
     w = gyroscope_measurement - bias
-    F = vcat(hcat(-skew_symmetric(w),-1.0*I(3)), zeros(3,6))
+    return vcat(hcat(-skew_symmetric(w),-1.0*I(3)), zeros(3,6))
 end
 
 function measurement_function(q, mag_eci, sun_eci)
@@ -61,5 +61,5 @@ end
 
 function measurement_fun_jacobian(q, mag_eci, sun_eci)
     mag_body, sun_body = measurement_function(q, mag_eci, sun_eci)
-    H = [skew_symmetric(mag_body) zeros(3,3);skew_symmetric(sun_body) zeros(3,3)]
+    return [skew_symmetric(mag_body) zeros(3,3);skew_symmetric(sun_body) zeros(3,3)]
 end
