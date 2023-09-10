@@ -1,8 +1,8 @@
 function derivatives(I, w, torque, q)
-    dw_dt = vec(I\(torque - w × (I * w)))
+    dw_dt = vec(I \ (torque - w × (I * w)))
 
-    dq_dt = 0.5 * (quat_mult(vcat(0,w),q))
-    
+    dq_dt = 0.5 * (quat_mult(vcat(0, w), q))
+
     return dw_dt, dq_dt
 end
 
@@ -14,9 +14,9 @@ function rk4(I, w, torque, q, dt)
 
     new_w = w .+ (dt / 6.0) .* (k1_w .+ 2 .* k2_w .+ 2 .* k3_w .+ k4_w)
     new_q = q .+ (dt / 6.0) .* (k1_q .+ 2 .* k2_q .+ 2 .* k3_q .+ k4_q)
-    
+
     new_q = normalize(new_q)
-    
+
     return new_w, new_q
 end
 

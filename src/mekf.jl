@@ -15,42 +15,47 @@ function predict(state, P, kf::KalmanFilter, gyroscope_measurement)
     kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
     new_state = kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
     Phi = exp(F_k * kf.dt)
-    new_P = Phi *  P * transpose(Phi) + kf.Q
+    new_P = Phi * P * transpose(Phi) + kf.Q
     return (new_state, new_P)
 end
 
-function update(state, P, kf::KalmanFilter, groundtruth_measurements::Tuple, reference_vectors::Tuple)
+function update(state,
+    P,
+    kf::KalmanFilter,
+    groundtruth_measurements::Tuple,
+    reference_vectors::Tuple)
     q = state[1:4]
     mag_eci = reference_vectors[1]
     sun_eci = reference_vectors[2]
-    H_k = kf.measurement_fun_jacobian(state[1:4], mag_eci,sun_eci)
+    H_k = kf.measurement_fun_jacobian(state[1:4], mag_eci, sun_eci)
     mag_body, sun_body = kf.measurement_fun(q, mag_eci, sun_eci)
     Kg = P * transpose(H_k) / (H_k * P * transpose(H_k) + kf.R)
-        
-    local_error_state = Kg * ([groundtruth_measurements[1];groundtruth_measurements[2]] - [mag_body;sun_body])
-    local_error_quaternion = [1;0.5 * local_error_state[1:3]]
-    
-    new_q = quat_mult(state[1:4],local_error_quaternion) 
-    new_q = new_q/norm(new_q)
-    new_bias = state[5:7] + local_error_state[4:6]            
-    
+
+    local_error_state = Kg * ([groundtruth_measurements[1]; groundtruth_measurements[2]] -
+                         [mag_body; sun_body])
+    local_error_quaternion = [1; 0.5 * local_error_state[1:3]]
+
+    new_q = quat_mult(state[1:4], local_error_quaternion)
+    new_q = new_q / norm(new_q)
+    new_bias = state[5:7] + local_error_state[4:6]
+
     N_params = 6
     identity_matrix = 1.0 * I(N_params)
-    
+
     new_P = (identity_matrix .- Kg * H_k) * P
-    new_state = [new_q;new_bias]
+    new_state = [new_q; new_bias]
     return (new_state, new_P)
 end
 
 function transition_function(q, gyroscope_measurement, bias, dt)
     w = gyroscope_measurement - bias
-    q = quat_mult(q,quaternion_exp([0;w]*dt))
-    return vcat(q,bias)
+    q = quat_mult(q, quaternion_exp([0; w] * dt))
+    return vcat(q, bias)
 end
 
 function transition_function_jacobian(gyroscope_measurement, bias)
     w = gyroscope_measurement - bias
-    return vcat(hcat(-skew_symmetric(w),-1.0*I(3)), zeros(3,6))
+    return vcat(hcat(-skew_symmetric(w), -1.0 * I(3)), zeros(3, 6))
 end
 
 function measurement_function(q, mag_eci, sun_eci)
@@ -61,5 +66,5 @@ end
 
 function measurement_fun_jacobian(q, mag_eci, sun_eci)
     mag_body, sun_body = measurement_function(q, mag_eci, sun_eci)
-    return [skew_symmetric(mag_body) zeros(3,3);skew_symmetric(sun_body) zeros(3,3)]
+    return [skew_symmetric(mag_body) zeros(3, 3); skew_symmetric(sun_body) zeros(3, 3)]
 end

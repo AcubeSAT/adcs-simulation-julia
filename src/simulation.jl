@@ -2,22 +2,20 @@ function calculate_orbit(JD, n_orbits)
     epc0 = Epoch(jd_to_caldate(JD)...)
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
 
-    eci0 = sOSCtoCART(oe0, use_degrees=true)
+    eci0 = sOSCtoCART(oe0, use_degrees = true)
 
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
 
-    orb = EarthInertialState(epc0, eci0, dt=1.0,
-        mass=100.0, n_grav=20, m_grav=20,
-        drag=true, srp=true,
-        moon=true, sun=true,
-        relativity=false
-    )
+    orb = EarthInertialState(epc0, eci0, dt = 1.0,
+        mass = 100.0, n_grav = 20, m_grav = 20,
+        drag = true, srp = true,
+        moon = true, sun = true,
+        relativity = false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
 end
-
 
 function run_groundtruth_simulation(params)
     torque = zeros(3, 1)
@@ -57,25 +55,41 @@ function run_groundtruth_simulation(params)
     gyro_noisy_history = Array{Float64}(undef, 3, length(epc))
 
     for i in 1:length(epc)
-        mag_noisy_history[:, i], sun_noisy_history[:, i], gyro_noisy_history[:, i], bias = get_noisy_measurements(q_history[:, i], w_history[:, i], bias, mag_eci[i], sun_eci[i], params)
+        mag_noisy_history[:, i], sun_noisy_history[:, i], gyro_noisy_history[:, i], bias = get_noisy_measurements(q_history[:,
+                i],
+            w_history[:, i],
+            bias,
+            mag_eci[i],
+            sun_eci[i],
+            params)
         bias_history[:, i] = bias
     end
-    groundtruth_state_history = (q_history, w_history, bias_history, mag_eci, sun_eci, mag_noisy_history, sun_noisy_history, gyro_noisy_history)
+    groundtruth_state_history = (q_history,
+        w_history,
+        bias_history,
+        mag_eci,
+        sun_eci,
+        mag_noisy_history,
+        sun_noisy_history,
+        gyro_noisy_history)
 
     return groundtruth_state_history
 end
 
-function run_filter_simulation(tunable_params, params, mag_noisy, sun_noisy, mag_eci, sun_eci, gyroscope_measurement)
-
-    kf = KalmanFilter(
-        transition_function,
+function run_filter_simulation(tunable_params,
+    params,
+    mag_noisy,
+    sun_noisy,
+    mag_eci,
+    sun_eci,
+    gyroscope_measurement)
+    kf = KalmanFilter(transition_function,
         transition_function_jacobian,
         tunable_params[1],
         measurement_function,
         measurement_fun_jacobian,
         tunable_params[2],
-        params.dt
-    )
+        params.dt)
     state = [1.0; 0.0; 0.0; 0; 0; 0; 0]
     P = 1.0 * Matrix{Float64}(I, 6, 6)
 
@@ -83,10 +97,13 @@ function run_filter_simulation(tunable_params, params, mag_noisy, sun_noisy, mag
     state_estimation_array = Matrix{Float64}(undef, 7, N) # pre-allocate
 
     for i in 1:size(mag_noisy)[2]
-        state, P = update(state, P, kf, (mag_noisy[:, i], sun_noisy[:, i]), (mag_eci[i], sun_eci[i]))
+        state, P = update(state,
+            P,
+            kf,
+            (mag_noisy[:, i], sun_noisy[:, i]),
+            (mag_eci[i], sun_eci[i]))
         state, P = predict(state, P, kf, gyroscope_measurement[:, i])
         state_estimation_array[:, i] = state
     end
     return state_estimation_array
 end
-
