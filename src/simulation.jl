@@ -29,7 +29,6 @@ function run_groundtruth_simulation(params)
 
     r_eci = eci[1:3, :]
     r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
-    # v_eci = eci[4:6,:]
 
     rotation_eci2ecef = rECItoECEF.(epc)
     r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]

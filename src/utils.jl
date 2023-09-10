@@ -66,7 +66,7 @@ function julian_to_gregorian(jd::Real)
     hour = floor(F_day * 24)
     minute = floor((F_day * 24 - hour) * 60)
     second = (F_day * 24 - hour - minute / 60) * 3600
-    microsecond = (second - floor(second)) * 1e9  # Convert remaining fraction to nanoseconds
+    microsecond = (second - floor(second)) * 1e9
     
     return Int(year), Int(month), Int(floor(day)), Int(hour), Int(minute), Float64(floor(second)), Float64(floor(microsecond))
 end

@@ -9,7 +9,6 @@ constant_params = parameter_struct(inertia_matrix, sigma_u, sigma_v, mag_noise, 
 (q_history, w_history, bias_history, mag_eci, sun_eci, mag_noisy_history, sun_noisy_history, gyro_noisy_history) = run_groundtruth_simulation(constant_params)
 gt_target = [q_history;bias_history]
 
-# Make eclipse
 sun_noisy_history[:, 5001:6500] = zeros(3,1500)
 
 function objective_function(x)
