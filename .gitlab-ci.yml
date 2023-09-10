@@ -17,7 +17,7 @@
         using Printf
         @printf "Test coverage %.2f%%\n" 100c / t'
 Julia 1.10:
-  image: julia:1.10
+  image: julia:1.10.0-beta2
   extends:
     - .script
     - .coverage
