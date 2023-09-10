@@ -9,6 +9,6 @@
         Pkg.build()
         Pkg.test()'
 Julia 1.10:
-  image: 1.10.0-beta2-bookworm
+  image: julia:1.10.0-beta2-bookworm
   extends:
     - .script
