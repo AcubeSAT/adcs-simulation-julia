@@ -1,7 +1,5 @@
 module ADCSSims
 
-using Flux
-using Optim
 using SatelliteDynamics
 using SatelliteToolboxGeomagneticField
 

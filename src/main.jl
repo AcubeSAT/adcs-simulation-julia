@@ -1,6 +1,6 @@
 using ADCSSims
-using Flux # TODO: use @reexport instead
-using Optim # TODO: use @reexport instead
+
+using Optim
 
 inertia_matrix = ADCSSims.diagm([1.0;1.5;0.5])
 sigma_u = 7.7570e-5;
@@ -18,7 +18,7 @@ sun_noisy_history[:, 5001:6500] = zeros(3,1500)
 function objective_function(x)
     tunable_params = ADCSSims.package_weights(x)
     state_estimation_history = ADCSSims.run_filter_simulation(tunable_params, constant_params, mag_noisy_history, sun_noisy_history, mag_eci, sun_eci, gyro_noisy_history)
-    loss = Flux.mse(gt_target[1:4,:], state_estimation_history[1:4,:])
+    loss = mse(gt_target[1:4,:], state_estimation_history[1:4,:])
 end
 
 initial_x = [-9,-10.6,-6.5,-13]
