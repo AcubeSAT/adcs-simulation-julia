@@ -1,6 +1,3 @@
-using LinearAlgebra
-include("utils.jl")
-
 mutable struct KalmanFilter
     # global_state::Vector{Float64}  # Global state vector  [1:4 quaternion 5:7 bias]
     # P::Matrix{Float64}  # State covariance matrix

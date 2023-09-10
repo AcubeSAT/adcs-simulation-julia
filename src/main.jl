@@ -1,16 +1,3 @@
-using SatelliteToolboxGeomagneticField
-using SatelliteDynamics
-using Flux
-using Optim
-
-include("dynamics.jl")
-include("utils.jl")
-include("parameters.jl")
-include("mekf.jl")
-include("noise_models.jl")
-include("simulation.jl")
-include("plots.jl")
-
 inertia_matrix = diagm([1.0;1.5;0.5])
 sigma_u = 7.7570e-5;
 sigma_v = 0.0026;

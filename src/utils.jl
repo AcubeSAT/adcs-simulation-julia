@@ -1,7 +1,3 @@
-using LinearAlgebra  # For matrix multiplication
-using SatelliteDynamics
-using Statistics
-
 function quat_mult(q, p)
     return [
         q[1]*p[1] - q[2]*p[2] - q[3]*p[3] - q[4]*p[4],

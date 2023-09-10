@@ -1,9 +1,3 @@
-include("dynamics.jl")
-include("utils.jl")
-include("parameters.jl")
-include("mekf.jl")
-include("noise_models.jl")
-
 function calculate_orbit(JD, n_orbits)
     # Declare simulation initial Epoch
     epc0 = Epoch(jd_to_caldate(JD)...)

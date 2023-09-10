@@ -1,6 +1,3 @@
-using Plots
-using LinearAlgebra
-
 function plot_histories(groundtruth_state_history, state_estimation_history)
     # Initialize a plot with 7 subplots arranged in a 7x1 grid
     plot(layout = (7, 1), size = (600, 1200))

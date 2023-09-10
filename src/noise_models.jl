@@ -1,6 +1,3 @@
-using LinearAlgebra
-include("utils.jl")
-
 function get_noisy_measurements(q, gt_angular_velocity, bias, mag_ref, sun_ref, params)
     old_bias = bias
     bias = bias .+ params.sigma_u .* sqrt(params.dt) .* randn(3)
