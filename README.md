@@ -4,5 +4,6 @@
 [![Build Status](https://github.com/AcubeSAT/adcs-simulation-julia/badges/main/pipeline.svg)](https://github.com/AcubeSAT/adcs-simulation-julia/pipelines)
 [![Coverage](https://github.com/AcubeSAT/adcs-simulation-julia/badges/main/coverage.svg)](https://github.com/AcubeSAT/adcs-simulation-julia/commits/main)
 [![Coverage](https://codecov.io/gh/AcubeSAT/adcs-simulation-julia/branch/main/graph/badge.svg)](https://codecov.io/gh/AcubeSAT/adcs-simulation-julia)
+[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 [![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 [![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/A/adcs-simulation-julia.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/A/adcs-simulation-julia.html)

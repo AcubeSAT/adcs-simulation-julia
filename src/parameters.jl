@@ -1,5 +1,3 @@
-using LinearAlgebra
-
 mutable struct parameter_struct
     inertia_matrix::Matrix{Float64}
     sigma_u::Float64
