@@ -29,7 +29,7 @@ function objective_function(x)
         mag_eci,
         sun_eci,
         gyro_noisy_history)
-    return mse(gt_target[1:4, :], state_estimation_history[1:4, :])
+    return ADCSSims.mse(gt_target[1:4, :], state_estimation_history[1:4, :])
 end
 
 initial_x = [-9, -10.6, -6.5, -13]
