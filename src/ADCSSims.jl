@@ -8,6 +8,7 @@ using Plots
 using Statistics
 
 include("dynamics.jl")
+include("losses.jl")
 include("utils.jl")
 include("parameters.jl")
 include("mekf.jl")
