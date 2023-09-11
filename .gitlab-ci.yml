@@ -1,0 +1,14 @@
+.script:
+  before_script:
+    - apt update -yq
+    - apt install -yq --no-install-recommends build-essential
+  script:
+    - |
+      julia --project=@. -e '
+        using Pkg
+        Pkg.build()
+        Pkg.test()'
+Julia 1.10:
+  image: julia:1.10.0-beta2-bookworm
+  extends:
+    - .script
