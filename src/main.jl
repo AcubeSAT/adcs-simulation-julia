@@ -2,6 +2,8 @@ using ADCSSims
 
 using Optim
 
+include("losses.jl")
+
 inertia_matrix = ADCSSims.diagm([1.0; 1.5; 0.5])
 sigma_u = 7.7570e-5;
 sigma_v = 0.0026;
