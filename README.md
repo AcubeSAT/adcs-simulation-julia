@@ -1,1 +1,8 @@
-ADCS simulation rewritten in julia.
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://AcubeSAT.github.io/adcs-simulation-julia/stable/)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://AcubeSAT.github.io/adcs-simulation-julia/dev/)
+[![Build Status](https://github.com/AcubeSAT/adcs-simulation-julia/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/AcubeSAT/adcs-simulation-julia/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/AcubeSAT/adcs-simulation-julia/badges/main/pipeline.svg)](https://github.com/AcubeSAT/adcs-simulation-julia/pipelines)
+[![Coverage](https://github.com/AcubeSAT/adcs-simulation-julia/badges/main/coverage.svg)](https://github.com/AcubeSAT/adcs-simulation-julia/commits/main)
+[![Coverage](https://codecov.io/gh/AcubeSAT/adcs-simulation-julia/branch/main/graph/badge.svg)](https://codecov.io/gh/AcubeSAT/adcs-simulation-julia)
+[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
+[![PkgEval](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/A/adcs-simulation-julia.svg)](https://JuliaCI.github.io/NanosoldierReports/pkgeval_badges/A/adcs-simulation-julia.html)
