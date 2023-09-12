@@ -12,6 +12,7 @@ SatelliteToolboxGeomagneticField = "9fc549ba-b5d7-49a2-b268-8171e5fb6e89"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
+SatelliteDynamics = "0.4"
 julia = "1.10"
 
 [extras]
