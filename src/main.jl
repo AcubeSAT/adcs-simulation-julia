@@ -6,8 +6,9 @@ inertia_matrix = ADCSSims.diagm([1.0; 1.5; 0.5])
 sigma_u = 7.7570e-5;
 sigma_v = 0.0026;
 mag_noise = 1e-3
-sun_noise = 1e-4
+sun_noise = 1e-3
 dt = 0.1
+
 constant_params = ADCSSims.parameter_struct(inertia_matrix,
     sigma_u,
     sigma_v,
@@ -32,12 +33,12 @@ function objective_function(x)
     return ADCSSims.mse(gt_target[1:4, :], state_estimation_history[1:4, :])
 end
 
-initial_x = [-9, -10.6, -6.5, -13]
+initial_x = [-6.0, -16, -6, -2]
 
 result = optimize(objective_function,
     initial_x,
-    NelderMead(),
-    Optim.Options(iterations = 100, show_trace = true, g_tol = 1e-15))
+    Optim.NelderMead(),
+    Optim.Options(iterations = 200, show_trace = true, g_tol = 1e-15))
 
 optimized_x = Optim.minimizer(result)
 
@@ -49,5 +50,6 @@ state_estimation_history = ADCSSims.run_filter_simulation(tunable_params,
     mag_eci,
     sun_eci,
     gyro_noisy_history)
+
 ADCSSims.plot_histories(gt_target, state_estimation_history)
 ADCSSims.plot_difference(gt_target, state_estimation_history)
