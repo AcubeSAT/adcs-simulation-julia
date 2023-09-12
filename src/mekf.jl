@@ -49,7 +49,7 @@ end
 
 function transition_function(q, gyroscope_measurement, bias, dt)
     w = gyroscope_measurement - bias
-    q = quat_mult(q, quaternion_exp([0; w] * dt))
+    q = rk4_filter(w, q, dt)
     return vcat(q, bias)
 end
 
