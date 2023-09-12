@@ -1,17 +1,14 @@
 function calculate_orbit(JD, n_orbits)
     epc0 = Epoch(jd_to_caldate(JD)...)
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
-
-    eci0 = sOSCtoCART(oe0, use_degrees = true)
-
+    eci0 = sOSCtoCART(oe0, use_degrees=true)
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
-
-    orb = EarthInertialState(epc0, eci0, dt = 1.0,
-        mass = 100.0, n_grav = 20, m_grav = 20,
-        drag = true, srp = true,
-        moon = true, sun = true,
-        relativity = false)
+    orb = EarthInertialState(epc0, eci0, dt=1.0,
+        mass=100.0, n_grav=20, m_grav=20,
+        drag=true, srp=true,
+        moon=true, sun=true,
+        relativity=false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
@@ -20,48 +17,41 @@ end
 function run_groundtruth_simulation(params)
     torque = zeros(3, 1)
     w = 0.0035 * ones(3)
-    q = [1.0, 0, 0, 0]
+    q = Quaternion([1.0, 0, 0, 0])
     JD = 2459921.0
     n_orbits = 2
     _, epc, eci = calculate_orbit(JD, n_orbits)
-
     r_eci = eci[1:3, :]
     r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
-
     rotation_eci2ecef = rECItoECEF.(epc)
     r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
     rotation_ecef2eci = rECEFtoECI.(epc)
-
     mag_ecef = geomagnetic_dipole_field.(r_ecef)
     mag_ecef = [mag_ecef[i] ./ norm(mag_ecef[i]) for i in 1:size(mag_ecef, 1)]
     mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i in 1:size(rotation_ecef2eci, 1)]
-
     sun_eci = sun_position.(epc)
     sun_eci = [sun_eci[i] ./ norm(sun_eci[i]) for i in 1:size(sun_eci, 1)]
-
     w_history = Array{Float64}(undef, 3, length(epc))
-    q_history = Array{Float64}(undef, 4, length(epc))
+    q_history = Vector{Quaternion}(undef, length(epc))
     bias_history = Array{Float64}(undef, 3, length(epc))
-
     for i in 1:length(epc)
         w, q = rk4(params.inertia_matrix, w, torque, q, params.dt)
         w_history[:, i] = w
-        q_history[:, i] = q
+        q_history[i] = q
     end
-
     bias = 0.001 * ones(3)
     mag_noisy_history = Array{Float64}(undef, 3, length(epc))
     sun_noisy_history = Array{Float64}(undef, 3, length(epc))
     gyro_noisy_history = Array{Float64}(undef, 3, length(epc))
 
     for i in 1:length(epc)
-        mag_noisy_history[:, i], sun_noisy_history[:, i], gyro_noisy_history[:, i], bias = get_noisy_measurements(q_history[:,
-                i],
+        mag_noisy_history[:, i], sun_noisy_history[:, i], gyro_noisy_history[:, i], bias = get_noisy_measurements(q_history[i],
             w_history[:, i],
             bias,
             mag_eci[i],
             sun_eci[i],
             params)
+
         bias_history[:, i] = bias
     end
     groundtruth_state_history = (q_history,
@@ -83,6 +73,7 @@ function run_filter_simulation(tunable_params,
     mag_eci,
     sun_eci,
     gyroscope_measurement)
+
     kf = KalmanFilter(transition_function,
         transition_function_jacobian,
         tunable_params[1],
@@ -90,20 +81,20 @@ function run_filter_simulation(tunable_params,
         measurement_fun_jacobian,
         tunable_params[2],
         params.dt)
-    state = [1.0; 0.0; 0.0; 0; 0; 0; 0]
+
+    state = KFState(Quaternion(1.0, 0.0, 0.0, 0.0), zeros(3))
     P = 1.0 * Matrix{Float64}(I, 6, 6)
-
     N = size(mag_noisy, 2)
-    state_estimation_array = Matrix{Float64}(undef, 7, N) # pre-allocate
-
+    state_estimation_array = Vector{KFState}(undef, N)
     for i in 1:size(mag_noisy)[2]
         state, P = update(state,
             P,
             kf,
             (mag_noisy[:, i], sun_noisy[:, i]),
             (mag_eci[i], sun_eci[i]))
+
         state, P = predict(state, P, kf, gyroscope_measurement[:, i])
-        state_estimation_array[:, i] = state
+        state_estimation_array[i] = state
     end
     return state_estimation_array
 end
