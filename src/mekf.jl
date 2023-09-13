@@ -8,10 +8,10 @@
     dt
 end
 
-    @concrete struct KFState
-        q
-        bias
-    end
+@concrete struct KFState
+    q
+    bias
+end
 
 function predict(state::KFState, P, KF::KalmanFilter, gyroscope_measurement)
     bias = state.bias

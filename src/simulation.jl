@@ -39,7 +39,7 @@ function run_groundtruth_simulation(params)
         w_history[:, i] = w
         q_history[i] = q
     end
-    bias = 0.001 * ones(3)
+    bias = 0.01 * ones(3)
     mag_noisy_history = Array{Float64}(undef, 3, length(epc))
     sun_noisy_history = Array{Float64}(undef, 3, length(epc))
     gyro_noisy_history = Array{Float64}(undef, 3, length(epc))

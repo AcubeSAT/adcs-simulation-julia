@@ -53,5 +53,5 @@ y = Vector{ADCSSims.KFState}(undef, len)
 for i in 1:len
     y[i] = ADCSSims.KFState(q_history[i], bias_history[:, i])
 end
-# ADCSSims.plot_histories(ŷ, y)
-# ADCSSims.plot_difference(y, ŷ)
+ADCSSims.plot_histories(ŷ, y)
+ADCSSims.plot_difference(y, ŷ)
