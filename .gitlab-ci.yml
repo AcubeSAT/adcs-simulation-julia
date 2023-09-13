@@ -8,7 +8,7 @@
         using Pkg
         Pkg.build()
         Pkg.test()'
-Julia 1.10:
-  image: julia:1.10.0-beta2-bookworm
+Julia 1.9:
+  image: julia:1.9
   extends:
     - .script
