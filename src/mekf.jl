@@ -1,56 +1,57 @@
-mutable struct KalmanFilter
-    transition_fun::Function
-    transition_fun_jacobian::Function
-    Q::Matrix{Float64}
-    measurement_fun::Function
-    measurement_fun_jacobian::Function
-    R::Matrix{Float64}
-    dt::Float64
+@concrete struct KalmanFilter
+    transition_fun
+    transition_fun_jacobian
+    Q
+    measurement_fun
+    measurement_fun_jacobian
+    R
+    dt
 end
 
-function predict(state, P, kf::KalmanFilter, gyroscope_measurement)
-    bias = state[5:7]
-    q = state[1:4]
-    F_k = kf.transition_fun_jacobian(gyroscope_measurement, bias)
-    kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
-    new_state = kf.transition_fun(q, gyroscope_measurement, bias, kf.dt)
-    Phi = exp(F_k * kf.dt)
-    new_P = Phi * P * transpose(Phi) + kf.Q
+@concrete struct KFState
+    q
+    bias
+end
+
+function predict(state::KFState, P, KF::KalmanFilter, gyroscope_measurement)
+    bias = state.bias
+    F_k = KF.transition_fun_jacobian(gyroscope_measurement, bias)
+    new_state = KF.transition_fun(state, gyroscope_measurement, KF.dt)
+    Phi = exp(F_k * KF.dt)
+    new_P = Phi * P * transpose(Phi) + KF.Q
     return (new_state, new_P)
 end
 
-function update(state,
+function update(state::KFState,
     P,
-    kf::KalmanFilter,
+    KF::KalmanFilter,
     groundtruth_measurements::Tuple,
     reference_vectors::Tuple)
-    q = state[1:4]
+
+    q = state.q
     mag_eci = reference_vectors[1]
     sun_eci = reference_vectors[2]
-    H_k = kf.measurement_fun_jacobian(state[1:4], mag_eci, sun_eci)
-    mag_body, sun_body = kf.measurement_fun(q, mag_eci, sun_eci)
-    Kg = P * transpose(H_k) / (H_k * P * transpose(H_k) + kf.R)
-
+    H_k = KF.measurement_fun_jacobian(q, mag_eci, sun_eci)
+    mag_body, sun_body = KF.measurement_fun(q, mag_eci, sun_eci)
+    Kg = P * transpose(H_k) / (H_k * P * transpose(H_k) + KF.R)
     local_error_state = Kg * ([groundtruth_measurements[1]; groundtruth_measurements[2]] -
-                         [mag_body; sun_body])
-    local_error_quaternion = [1; 0.5 * local_error_state[1:3]]
-
-    new_q = quat_mult(state[1:4], local_error_quaternion)
-    new_q = new_q / norm(new_q)
-    new_bias = state[5:7] + local_error_state[4:6]
-
+                              [mag_body; sun_body])
+    local_error_quaternion = Quaternion([1; 0.5 * local_error_state[1:3]])
+    new_q = normalize(q * local_error_quaternion)
+    new_bias = state.bias + local_error_state[4:6]
     N_params = 6
     identity_matrix = 1.0 * I(N_params)
-
     new_P = (identity_matrix .- Kg * H_k) * P
-    new_state = [new_q; new_bias]
+    new_state = KFState(new_q, new_bias)
     return (new_state, new_P)
 end
 
-function transition_function(q, gyroscope_measurement, bias, dt)
+function transition_function(state::KFState, gyroscope_measurement, dt)
+    q = state.q
+    bias = state.bias
     w = gyroscope_measurement - bias
     q = rk4_filter(w, q, dt)
-    return vcat(q, bias)
+    return KFState(q, bias)
 end
 
 function transition_function_jacobian(gyroscope_measurement, bias)
@@ -59,8 +60,8 @@ function transition_function_jacobian(gyroscope_measurement, bias)
 end
 
 function measurement_function(q, mag_eci, sun_eci)
-    mag_body = rotate_vector_by_quaternion(mag_eci, q)
-    sun_body = rotate_vector_by_quaternion(sun_eci, q)
+    mag_body = rotvec(mag_eci, q)
+    sun_body = rotvec(sun_eci, q)
     return (mag_body, sun_body)
 end
 
