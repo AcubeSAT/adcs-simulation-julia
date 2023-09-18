@@ -36,7 +36,7 @@ initial_x = [-6.0, -16, -6, -2]
 result = optimize(objective_function,
     initial_x,
     Optim.NelderMead(),
-    Optim.Options(iterations=200, show_trace=true, g_tol=1e-15))
+    Optim.Options(iterations = 200, show_trace = true, g_tol = 1e-15))
 
 optimized_x = Optim.minimizer(result)
 tunable_params = ADCSSims.package_weights(optimized_x)

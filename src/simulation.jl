@@ -1,14 +1,14 @@
 function calculate_orbit(JD, n_orbits, dt)
     epc0 = Epoch(jd_to_caldate(JD)...)
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
-    eci0 = sOSCtoCART(oe0, use_degrees=true)
+    eci0 = sOSCtoCART(oe0, use_degrees = true)
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
-    orb = EarthInertialState(epc0, eci0, dt=dt,
-        mass=100.0, n_grav=20, m_grav=20,
-        drag=true, srp=true,
-        moon=true, sun=true,
-        relativity=false)
+    orb = EarthInertialState(epc0, eci0, dt = dt,
+        mass = 100.0, n_grav = 20, m_grav = 20,
+        drag = true, srp = true,
+        moon = true, sun = true,
+        relativity = false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
@@ -73,7 +73,6 @@ function run_filter_simulation(tunable_params,
     mag_eci,
     sun_eci,
     gyroscope_measurement)
-
     kf = KalmanFilter(transition_function,
         transition_function_jacobian,
         tunable_params[1],

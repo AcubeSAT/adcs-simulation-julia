@@ -44,12 +44,10 @@ function Base.getindex(Q::Quaternion, i::Int)
 end
 
 function Base.:*(Q1::Quaternion, Q2::Quaternion)
-    return Quaternion(
-        Q1.q1 * Q2.q1 - Q1.q2 * Q2.q2 - Q1.q3 * Q2.q3 - Q1.q4 * Q2.q4,
+    return Quaternion(Q1.q1 * Q2.q1 - Q1.q2 * Q2.q2 - Q1.q3 * Q2.q3 - Q1.q4 * Q2.q4,
         Q1.q1 * Q2.q2 + Q1.q2 * Q2.q1 + Q1.q3 * Q2.q4 - Q1.q4 * Q2.q3,
         Q1.q1 * Q2.q3 - Q1.q2 * Q2.q4 + Q1.q3 * Q2.q1 + Q1.q4 * Q2.q2,
-        Q1.q1 * Q2.q4 + Q1.q2 * Q2.q3 - Q1.q3 * Q2.q2 + Q1.q4 * Q2.q1
-    )
+        Q1.q1 * Q2.q4 + Q1.q2 * Q2.q3 - Q1.q3 * Q2.q2 + Q1.q4 * Q2.q1)
 end
 
 Base.:*(Q::Quaternion, n::Number) = Quaternion(Q.q1 * n, Q.q2 * n, Q.q3 * n, Q.q4 * n)
