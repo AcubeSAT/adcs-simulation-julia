@@ -1,10 +1,10 @@
-function calculate_orbit(JD, n_orbits)
+function calculate_orbit(JD, n_orbits, dt)
     epc0 = Epoch(jd_to_caldate(JD)...)
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
     eci0 = sOSCtoCART(oe0, use_degrees=true)
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
-    orb = EarthInertialState(epc0, eci0, dt=1.0,
+    orb = EarthInertialState(epc0, eci0, dt=dt,
         mass=100.0, n_grav=20, m_grav=20,
         drag=true, srp=true,
         moon=true, sun=true,
@@ -97,4 +97,37 @@ function run_filter_simulation(tunable_params,
         state_estimation_array[i] = state
     end
     return state_estimation_array
+end
+
+# FOV should be in radians, half of the sensor FOV
+function in_fov(tpos, fov)
+    LinearAlgebra.normalize!(tpos)
+    return acos(dot(tpos, [0 0 1])) <= fov
+end
+
+function in_fov(tpos, vfov, hfov)
+    LinearAlgebra.normalize!(tpos)
+    θv = abs(acos(tpos[3]))
+    θh = abs(atan(tpos[2], tpos[1]))
+    return θv <= vfov && θh <= hfov
+end
+
+function available(NS::NadirSensor, target_vector, w)
+    return w <= NS.maximum_rate && in_fov(target_vector, NS.vfov, NS.hfov)
+end
+
+function available(ST::StarTracker, target_vector, w)
+    return w <= ST.maximum_rate && !in_fov(target_vector, ST.fov)
+end
+
+function available(SN::SunSensor, target_vector, w)
+    return w <= SN.maximum_rate && in_fov(target_vector, SN.fov)
+end
+
+available(::AbstractSensor) = error("available is not defined in the abstract type")
+function create_err_q(S <: AbstractSensor)
+    δθx = randn() * S.cross_axis_err
+    δθy = randn() * S.cross_axis_err
+    δθz = randn() * S.roll_err
+    return LinearAlgebra.normalize(Quaternion(1.0, δθx / 2, δθy / 2, δθz / 2))
 end
