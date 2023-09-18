@@ -17,6 +17,11 @@ function Base.show(io::IO, Q::Quaternion)
 end
 
 Quaternion(xs::Vector) = Quaternion(xs...)
+function Quaternion(q1, q2, q3, q4)
+    promoted_type = promote_type(typeof(q1), typeof(q2), typeof(q3), typeof(q4))
+    return Quaternion{promoted_type}(promote(q1, q2, q3, q4)...)
+end
+
 function Base.convert(::Type{Quaternion{T}}, x::T) where {T}
     return Quaternion(x, x, x, x)
 end
