@@ -124,7 +124,7 @@ function available(SN::SunSensor, target_vector, w)
 end
 
 available(::AbstractSensor) = error("available is not defined in the abstract type")
-function create_err_q(S <: AbstractSensor)
+function create_err_q(S::AbstractSensor)
     δθx = randn() * S.cross_axis_err
     δθy = randn() * S.cross_axis_err
     δθz = randn() * S.roll_err
