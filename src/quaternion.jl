@@ -26,6 +26,7 @@ function Base.convert(::Type{Quaternion{T}}, x::T) where {T}
     return Quaternion(x, x, x, x)
 end
 
+Base.convert(::Type{Quaternion}, Q::Quaternion) = Q
 function Base.convert(::Type{T}, Q::Quaternion) where {T}
     return Quaternion{T}(Q.q1, Q.q2, Q.q3, Q.q4)
 end
