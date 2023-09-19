@@ -7,6 +7,7 @@ abstract type AbstractSensor end
     σ_cross_sight = 0.005817764173314432
     σ_roll = 0.005817764173314432
     q_body_sensor::Quaternion
+    abs_weight = 0.333333
 end
 
 @kwdef @concrete struct StarTracker <: AbstractSensor
@@ -15,6 +16,7 @@ end
     σ_cross_sight = 0.00011635528346628864
     σ_roll = 0.00034906585039886593
     q_body_sensor::Quaternion
+    abs_weight = 227.272727
 end
 
 @kwdef @concrete struct SunSensor <: AbstractSensor
@@ -23,4 +25,5 @@ end
     σ_cross_sight = 0.0017453292519943296
     σ_roll = 0.0017453292519943296
     q_body_sensor::Quaternion
+    abs_weight = 8.333333
 end

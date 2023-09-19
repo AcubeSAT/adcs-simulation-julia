@@ -130,3 +130,17 @@ function create_err_q(S::AbstractSensor)
     δθz = randn() * S.σ_roll
     return LinearAlgebra.normalize(Quaternion(1.0, δθx / 2, δθy / 2, δθz / 2))
 end
+
+function estimateq(sensors, target_vectors, w)
+    err_qs = Quaternion[]
+    abs_weights = typeof(sensors[1].abs_weight)[]
+    for (sensor, tvec) in zip(sensors, target_vectors)
+        if available(sensor, tvec, w)
+            push!(err_qs, create_err_q(sensor))
+            push!(abs_weights, sensor.abs_weight)
+        end
+    end
+    isempty(err_qs) && return nothing
+    rel_weights = abs_weights ./ sum(abs_weights)
+    return normalize(sum(err_qs .* rel_weights))
+end
