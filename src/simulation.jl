@@ -125,8 +125,8 @@ end
 
 available(::AbstractSensor) = error("available is not defined in the abstract type")
 function create_err_q(S::AbstractSensor)
-    δθx = randn() * S.cross_axis_err
-    δθy = randn() * S.cross_axis_err
-    δθz = randn() * S.roll_err
+    δθx = randn() * S.σ_cross_sight
+    δθy = randn() * S.σ_cross_sight
+    δθz = randn() * S.σ_roll
     return LinearAlgebra.normalize(Quaternion(1.0, δθx / 2, δθy / 2, δθz / 2))
 end
