@@ -1,16 +1,16 @@
 @concrete struct KalmanFilter
-    transition_fun::Any
-    transition_fun_jacobian::Any
-    Q::Any
-    measurement_fun::Any
-    measurement_fun_jacobian::Any
-    R::Any
-    dt::Any
+    transition_fun
+    transition_fun_jacobian
+    Q
+    measurement_fun
+    measurement_fun_jacobian
+    R
+    dt
 end
 
 @concrete struct KFState
-    q::Any
-    bias::Any
+    q
+    bias
 end
 
 function predict(state::KFState, P, KF::KalmanFilter, gyroscope_measurement)

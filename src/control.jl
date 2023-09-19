@@ -15,7 +15,9 @@ function decompose_torque(τ, b, msaturation)
     τm = τ - τw
     m = cross(b, τm) / dot(b, b)
     mprime = m / norm(τm)
-    ksm = min(abs(msaturation/mprime[1]), abs(msaturation/mprime[2]), abs(msaturation/mprime[3]))
+    ksm = min(abs(msaturation / mprime[1]),
+        abs(msaturation / mprime[2]),
+        abs(msaturation / mprime[3]))
     mtrue = ksm * mprime
     τsm = ksm * cross(b, mprime)
     τw = τ - τsm

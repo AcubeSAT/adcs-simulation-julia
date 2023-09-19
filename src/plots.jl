@@ -46,7 +46,7 @@ function plot_difference(ŷ, y)
     yqs = [s.q for s in y]
     for i in 1:len
         q_rel = ŷqs[i] * conj(yqs[i])
-        euler_angles_deg = quat_to_euler_deg(q_rel)
+        euler_angles_deg = toeuler(q_rel)
         difference_array[1:3, i] = euler_angles_deg
     end
 
