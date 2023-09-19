@@ -17,6 +17,11 @@ function Base.show(io::IO, Q::Quaternion)
 end
 
 Quaternion(xs::Vector) = Quaternion(xs...)
+function Quaternion(q1, q2, q3, q4)
+    promoted_type = promote_type(typeof(q1), typeof(q2), typeof(q3), typeof(q4))
+    return Quaternion{promoted_type}(promote(q1, q2, q3, q4)...)
+end
+
 function Base.convert(::Type{Quaternion{T}}, x::T) where {T}
     return Quaternion(x, x, x, x)
 end
@@ -39,12 +44,10 @@ function Base.getindex(Q::Quaternion, i::Int)
 end
 
 function Base.:*(Q1::Quaternion, Q2::Quaternion)
-    return Quaternion(
-        Q1.q1 * Q2.q1 - Q1.q2 * Q2.q2 - Q1.q3 * Q2.q3 - Q1.q4 * Q2.q4,
+    return Quaternion(Q1.q1 * Q2.q1 - Q1.q2 * Q2.q2 - Q1.q3 * Q2.q3 - Q1.q4 * Q2.q4,
         Q1.q1 * Q2.q2 + Q1.q2 * Q2.q1 + Q1.q3 * Q2.q4 - Q1.q4 * Q2.q3,
         Q1.q1 * Q2.q3 - Q1.q2 * Q2.q4 + Q1.q3 * Q2.q1 + Q1.q4 * Q2.q2,
-        Q1.q1 * Q2.q4 + Q1.q2 * Q2.q3 - Q1.q3 * Q2.q2 + Q1.q4 * Q2.q1
-    )
+        Q1.q1 * Q2.q4 + Q1.q2 * Q2.q3 - Q1.q3 * Q2.q2 + Q1.q4 * Q2.q1)
 end
 
 Base.:*(Q::Quaternion, n::Number) = Quaternion(Q.q1 * n, Q.q2 * n, Q.q3 * n, Q.q4 * n)
