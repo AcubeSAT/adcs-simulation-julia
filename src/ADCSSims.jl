@@ -11,6 +11,7 @@ using Statistics
 
 include("quaternion.jl")
 include("sensor.jl")
+include("control.jl")
 include("noise_models.jl")
 include("dynamics.jl")
 include("losses.jl")
@@ -22,5 +23,6 @@ include("plots.jl")
 
 export Quaternion
 export NadirSensor, StarTracker, SunSensor
+export PDController, calculate_torque, decompose_torque
 
 end
