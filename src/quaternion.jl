@@ -83,7 +83,7 @@ function rotvec(v::Vector, Q::Quaternion)
     return vector(conj(Q) * Quaternion([0; v]) * Q)
 end
 
-function quat_to_euler_deg(Q::Quaternion)
+function toeuler(Q::Quaternion)
     roll = atan(2 * (Q.q1 * Q.q2 + Q.q3 * Q.q4), 1 - 2 * (Q.q2^2 + Q.q3^2))
     pitch = asin(2 * (Q.q1 * Q.q3 - Q.q4 * Q.q2))
     yaw = atan(2 * (Q.q1 * Q.q4 + Q.q2 * Q.q3), 1 - 2 * (Q.q3^2 + Q.q4^2))
