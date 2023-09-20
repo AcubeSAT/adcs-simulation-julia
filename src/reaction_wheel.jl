@@ -1,9 +1,12 @@
 @kwdef @concrete struct ReactionWheel
     J
     w
+    wmax = 628.318530
+    wmaxmid = wmax - 10
     wdeadzone = 52.359877
-    wmid = wdeadzone + 10
-    α
+    wdeadzonemid = wdeadzone + 10
+    saturationα
+    deadzoneα
     maxtorque = 0.001
     Fc = 0.001
     b = 0.0005
@@ -20,5 +23,10 @@ end
 
 function deadzone_compensation(RW::ReactionWheel)
     abs(RW.w) <= RW.wdeadzone || return zero(RW.w)
-    return RW.maxtorque / (1 + exp(-RW.α * (RW.w - RW.wmid)))
+    return -sign(RW.w) * RW.maxtorque / (1 + exp(-RW.deadzoneα * (RW.w - RW.wdeadzonemid)))
+end
+
+function saturation_compensation(RW::ReactionWheel)
+    RW.wmax <= abs(RW.w) || return zero(RW.w)
+    return -sign(RW.w) * RW.maxtorque / (1 + exp(-RW.saturationα * (RW.w - RW.wmaxmid)))
 end

@@ -26,7 +26,7 @@ include("plots.jl")
 
 export Quaternion, scalar, vector, rotvec, toeuler
 export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, estimateq
-export ReactionWheel, stribeck, deadzone_compensation
+export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss
 
