@@ -10,6 +10,11 @@ struct Quaternion{T<:Number} <: AbstractQuaternion{T}
     Quaternion{T}(v::A) where {T<:Number, A<:AbstractVector} = new{T}(SVector{4,T}(v))
 end
 
+# Given a numeric type, return a QT type (not instance) specialized on T
+(::Type{QT})(::Type{T}) where {T<:Number, QT<:AbstractQuaternion} = QT{T}
+# Given a QT specialized on T, return another QT also specialized on T
+(::Type{QT})(::Type{<:AbstractQuaternion{T}}) where {T<:Number, QT<:AbstractQuaternion} = QT{T}
+
 # Construct without having to specify T
 Quaternion(v::SVector{4,T}) where {T<:Number} = Quaternion{T}(v)
 Quaternion(v::AbstractVector{T}) where {T<:Number} = Quaternion{T}(v)
