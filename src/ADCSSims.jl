@@ -26,7 +26,7 @@ include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
 
-export AbstractQuaternion, Quaternion
+export Quaternion
 export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, estimateq
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
