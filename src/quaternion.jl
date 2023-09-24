@@ -98,3 +98,17 @@ Base.isone(Q::Quaternion) = isone(Q[1]) && iszero(Q[2]) && iszero(Q[3]) && iszer
 Base.isnan(Q::Quaternion) = isnan(Q[1]) || isnan(Q[2]) || isnan(Q[3]) || isnan(Q[4])
 Base.isinf(Q::Quaternion) = isinf(Q[1]) || isinf(Q[2]) || isinf(Q[3]) || isinf(Q[4])
 Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
+
+function Base.show(io::IO, Q::Quaternion{T}) where T
+    print(io, "{")
+    show(io, T)
+    print(io, "}")
+    print(io, " q1: ")
+    show(io, Q[1])
+    print(io, ", q2: ")
+    show(io, Q[2])
+    print(io, ", q3: ")
+    show(io, Q[3])
+    print(io, ", q4: ")
+    show(io, Q[4])
+end
