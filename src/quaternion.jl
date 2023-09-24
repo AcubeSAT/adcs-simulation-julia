@@ -53,7 +53,7 @@ end
 # TODO: Should this return a view?
 Base.@propagate_inbounds Base.getindex(Q::Quaternion, I) = @view Q.coeffs[I]
 
-@inline Base.length(::Quaternion) = 4
+Base.length(::Quaternion) = 4
 
 Base.real(::Type{Quaternion}) = eltype(Quaternion)
 Base.real(::Type{Quaternion{T}}) where {T} = T
