@@ -36,13 +36,13 @@ function rk4_rw(J, w, τ, dt)
 end
 
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(sensors, target_vectors, w, RW::ReactionWheel, I, dt = 0.001)
-    q = estimateq(sensors, target_vectors, w)
-    τ = calculate_torque(PDController(), qtarget, q, w, wtarget)
-    τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
-    compensation = deadzone_compensation(RW) + saturation_compensation(RW)
-    τw = clamp(τw + compensation, -RW.maxtorque, RW.maxtorque)
-    rwfriction = stribeck(RW)
-    @reset RW.w = rk4_rw(RW.J, RW.w, -τw + rwfriction, dt)
-    return rk4(I, w, τw - rwfriction, q, dt) # TODO: update cubesat state with τw + τsm + disturbances
-end
+# function control_loop(sensors, target_vectors, w, RW::ReactionWheel, I, dt = 0.001)
+#     q = estimateq(sensors, target_vectors, w)
+#     τ = calculate_torque(PDController(0.1, 0.001), qtarget, q, w, wtarget)
+#     τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
+#     compensation = deadzone_compensation(RW) + saturation_compensation(RW)
+#     τw = clamp(τw + compensation, -RW.maxtorque, RW.maxtorque)
+#     rwfriction = stribeck(RW)
+#     @reset RW.w = rk4_rw(RW.J, RW.w, -τw + rwfriction, dt)
+#     return rk4(I, w, τw - rwfriction, q, dt) # TODO: update cubesat state with τw + τsm + disturbances
+# end

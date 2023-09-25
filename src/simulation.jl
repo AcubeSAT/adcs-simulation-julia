@@ -20,7 +20,7 @@ function run_groundtruth_simulation(params)
     q = Quaternion([1.0, 0, 0, 0])
     JD = 2459921.0
     n_orbits = 2
-    _, epc, eci = calculate_orbit(JD, n_orbits)
+    _, epc, eci = calculate_orbit(JD, n_orbits, 0.001)
     r_eci = eci[1:3, :]
     r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
     rotation_eci2ecef = rECItoECEF.(epc)
