@@ -14,9 +14,21 @@ Quaternion(v::AbstractVector{T}) where {T<:Real} = Quaternion{T}(v)
 
 # Explicitly state type, use SVector promote_rules for mixed types
 Quaternion{T}(w, x, y, z) where {T<:Real} = Quaternion(SVector{4,T}(w, x, y, z))
+Quaternion{T}(x, y, z) where {T<:Real} = Quaternion(SVector{4,T}(zero(x), x, y, z))
+Quaternion{T}(w::Real) where {T<:Real} = Quaternion(SVector{4,T}(w, zero(w), zero(w), zero(w)))
 # Rely on type inference, use SVector promote_rules for mixed types
 function Quaternion(w, x, y, z)
     v = SVector{4}(w, x, y, z)
+    return Quaternion{eltype(v)}(v)
+end
+
+function Quaternion(x, y, z)
+    v = SVector{4}(zero(x), x, y, z)
+    return Quaternion{eltype(v)}(v)
+end
+
+function Quaternion(w::Real)
+    v = SVector{4}(w, zero(w), zero(w), zero(w))
     return Quaternion{eltype(v)}(v)
 end
 
@@ -98,6 +110,11 @@ Base.isone(Q::Quaternion) = isone(Q[1]) && iszero(Q[2]) && iszero(Q[3]) && iszer
 Base.isnan(Q::Quaternion) = isnan(Q[1]) || isnan(Q[2]) || isnan(Q[3]) || isnan(Q[4])
 Base.isinf(Q::Quaternion) = isinf(Q[1]) || isinf(Q[2]) || isinf(Q[3]) || isinf(Q[4])
 Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
+
+function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
+    Q = normalize(Q)
+    return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
+end
 
 function Base.show(io::IO, Q::Quaternion{T}) where T
     print(io, "{")
