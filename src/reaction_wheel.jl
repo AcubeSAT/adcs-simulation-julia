@@ -21,12 +21,20 @@ function stribeck(RW::ReactionWheel)
     return τcoulomb + τviscous + τstribeck
 end
 
+function deadzone_compensation(w, wdeadzone, wdeadzonemid, deadzoneα, maxtorque)
+    abs(w) <= wdeadzone || return zero(w)
+    return -sign(w) * maxtorque / (1 + exp(-deadzoneα * (w - wdeadzonemid)))
+end
+
 function deadzone_compensation(RW::ReactionWheel)
-    abs(RW.w) <= RW.wdeadzone || return zero(RW.w)
-    return -sign(RW.w) * RW.maxtorque / (1 + exp(-RW.deadzoneα * (RW.w - RW.wdeadzonemid)))
+    return deadzone_compensation.(RW.w, RW.wdeadzone, RW.wdeadzonemid, RW.deadzoneα, RW.maxtorque)
+end
+
+function saturation_compensation(w, wmax, saturationα, wmaxmid, maxtorque)
+    wmax <= abs(w) || return zero(w)
+    return -sign(w) * maxtorque / (1 + exp(-saturationα * (w - wmaxmid)))
 end
 
 function saturation_compensation(RW::ReactionWheel)
-    RW.wmax <= abs(RW.w) || return zero(RW.w)
-    return -sign(RW.w) * RW.maxtorque / (1 + exp(-RW.saturationα * (RW.w - RW.wmaxmid)))
+    return saturation_compensation.(RW.w, RW.wmax, RW.saturationα, RW.wmaxmid, RW.maxtorque)
 end
