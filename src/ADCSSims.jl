@@ -1,6 +1,9 @@
 module ADCSSims
 
 using ConcreteStructs
+
+using StaticArrays
+
 using SatelliteDynamics
 using SatelliteToolboxGeomagneticField
 
@@ -20,7 +23,7 @@ include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
 
-export Quaternion, scalar, vector, rotvec, toeuler
+export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque
 export mse, qloss
