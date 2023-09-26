@@ -6,7 +6,7 @@ abstract type AbstractSensor end
     maximum_rate = 0.24434609527920614
     σ_cross_sight = 0.005817764173314432
     σ_roll = 0.005817764173314432
-    q_body_sensor::Quaternion
+    q_body_sensor = Quaternion(sqrt(2)/2, 0.0, sqrt(2)/2, 0.0)
     abs_weight = 0.333333
 end
 
@@ -15,7 +15,7 @@ end
     maximum_rate = 0.005235987755982988
     σ_cross_sight = 0.00011635528346628864
     σ_roll = 0.00034906585039886593
-    q_body_sensor::Quaternion
+    q_body_sensor = Quaternion(sqrt(2)/2, 0.0, sqrt(2)/2, 0.0)
     abs_weight = 227.272727
 end
 
@@ -24,7 +24,7 @@ end
     maximum_rate = 1.2217304763960306
     σ_cross_sight = 0.0017453292519943296
     σ_roll = 0.0017453292519943296
-    q_body_sensor::Quaternion
+    q_body_sensor = QuaternionF64(1,0,0,0)
     abs_weight = 8.333333
 end
 
@@ -41,16 +41,28 @@ function in_fov(tpos, vfov, hfov)
     return θv <= vfov && θh <= hfov
 end
 
+# function available(NS::NadirSensor, target_vector, w)
+#     return w <= NS.maximum_rate && in_fov(target_vector, NS.vfov, NS.hfov)
+# end
+
+# function available(ST::StarTracker, target_vector, w)
+#     return w <= ST.maximum_rate && !in_fov(target_vector, ST.fov)
+# end
+
+# function available(SN::SunSensor, target_vector, w)
+#     return w <= SN.maximum_rate && in_fov(target_vector, SN.fov)
+# end
+
 function available(NS::NadirSensor, target_vector, w)
-    return w <= NS.maximum_rate && in_fov(target_vector, NS.vfov, NS.hfov)
+    return in_fov(target_vector, NS.vfov, NS.hfov)
 end
 
 function available(ST::StarTracker, target_vector, w)
-    return w <= ST.maximum_rate && !in_fov(target_vector, ST.fov)
+    return !in_fov(target_vector, ST.fov)
 end
 
 function available(SN::SunSensor, target_vector, w)
-    return w <= SN.maximum_rate && in_fov(target_vector, SN.fov)
+    return in_fov(target_vector, SN.fov)
 end
 
 available(::AbstractSensor) = error("available is not defined in the abstract type")
@@ -61,15 +73,16 @@ function qerr(S::AbstractSensor)
     return LinearAlgebra.normalize(Quaternion(1.0, δθx / 2, δθy / 2, δθz / 2))
 end
 
-function estimateq(sensors, target_vectors, w)
+function emulate_estimation(sensors, target_vectors, w)
     err_qs = Quaternion[]
     abs_weights = typeof(sensors[1].abs_weight)[]
     for (sensor, tvec) in zip(sensors, target_vectors)
-        if available(sensor, tvec, w)
+        if available(sensor, tvec, norm(w))
             push!(err_qs, qerr(sensor))
             push!(abs_weights, sensor.abs_weight)
         end
     end
+    @assert !isempty(err_qs)
     rel_weights = abs_weights ./ sum(abs_weights)
-    return normalize(sum(err_qs .* rel_weights))
+    return true, normalize(sum(err_qs .* rel_weights))
 end

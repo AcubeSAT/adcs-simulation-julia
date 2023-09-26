@@ -7,18 +7,22 @@
     wdeadzonemid = wdeadzone + 10
     saturationα
     deadzoneα
-    maxtorque = 0.001
+    maxtorque = 0.005
     Fc = 0.001
     b = 0.0005
     Fs = 0.0005
     w0 = 1
 end
 
-function stribeck(RW::ReactionWheel)
-    τcoulomb = RW.Fc * sign(RW.w)
-    τviscous = RW.b * RW.w
-    τstribeck = RW.Fs * exp(-(RW.w / RW.w0)^2) * sign(RW.w)
+function stribeck(Fc, w, b, w0)
+    τcoulomb = Fc * sign(w)
+    τviscous = b * w
+    τstribeck = Fc * exp(-(w / w0)^2) * sign(w)
     return τcoulomb + τviscous + τstribeck
+end
+
+function stribeck(RW::ReactionWheel)
+    return stribeck.(RW.Fc, RW.w, RW.b, RW.w0)
 end
 
 function deadzone_compensation(w, wdeadzone, wdeadzonemid, deadzoneα, maxtorque)
