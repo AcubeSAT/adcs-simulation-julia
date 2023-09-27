@@ -97,3 +97,56 @@ function run_filter_simulation(tunable_params,
     end
     return state_estimation_array
 end
+
+function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qtarget)
+    qeci2body = normalize(QuaternionF64(1))
+    w = @MVector [0.53, 0.53, 0.053]
+    rw_w = 94.247779 * ones(3)
+    sensors = (NadirSensor(), StarTracker(), SunSensor())
+    RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
+    iters = length(t)
+    state_history = Vector{Tuple{typeof(w), typeof(qeci2body)}}(undef, iters)
+    τw = Vector{Vector{Float64}}(undef, iters)
+    τsm = Vector{Vector{Float64}}(undef, iters)
+    res = Vector{Bool}(undef, iters)
+    for i in 1:iters
+        nadir_body = Vector(-rotvec(normalize(r_eci[i]), qeci2body))
+        sun_body = Vector(rotvec(sun_eci[i], qeci2body))
+        mag_body = Vector(rotvec(mag_eci[i], qeci2body))
+        qeci2orbit = Qeci2orbit[i]
+        wqeci2body, rτw, rτsm, rres, RW = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.067,0.167]), dt)
+        w, qeci2body = wqeci2body
+        state_history[i] = (w, qeci2body)
+        τw[i] = rτw
+        τsm[i] = rτsm
+        res[i] = rres
+    end
+    return state_history, τw, τsm
+end
+
+function generate_orbit_data(jd, norbits, dt)
+    t, epc, eci = calculate_orbit(jd, norbits, dt)
+    r_eci = eci[1:3, :]
+    r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
+    v_eci = eci[4:6, :]
+    v_eci = [v_eci[:, i] for i in 1:size(v_eci, 2)]
+    rotation_eci2ecef = rECItoECEF.(epc)
+    r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
+    rotation_ecef2eci = rECEFtoECI.(epc)
+    mag_ecef = 1e-9 * geomagnetic_dipole_field.(r_ecef)
+    mag_ecef = [mag_ecef[i] for i in 1:size(mag_ecef, 1)]
+    mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i in 1:size(rotation_ecef2eci, 1)]
+    sun_eci = sun_position.(epc)
+    sun_eci = [normalize(sun_eci[i]) for i in 1:size(sun_eci, 1)]
+    T = eci2orbit.(r_eci, v_eci)
+    qeci2orbit = from_rotation_matrix.(T)
+    return t, r_eci, sun_eci, mag_eci, qeci2orbit, dt
+end
+
+function eci2orbit(r_eci, v_eci)
+    r = normalize(r_eci)
+    h = normalize(cross(r_eci, v_eci))
+    θ = cross(h, r)
+    T = hcat(r, θ, h)
+    return T'
+end

@@ -55,3 +55,13 @@ for i in 1:len
 end
 ADCSSims.plot_histories(ŷ, y)
 ADCSSims.plot_difference(y, ŷ)
+
+const jd = 2459921.0
+const norbits = 1
+const qtarget = one(QuaternionF64)
+const vecs = ADCSSims.generate_orbit_data(jd, norbits, 0.1)
+const PD = PDController(1e-4, 1e-3) # SMatrix{3,3}(I(3))
+const state, τw, τsm = ADCSSims.rotational_dynamics(PD, vecs..., qtarget)
+
+ADCSSims.plotτ(τw, τsm)
+ADCSSims.plotqs(state)

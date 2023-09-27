@@ -113,7 +113,60 @@ Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
 
 function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
     Q = normalize(Q)
-    return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
+    return vec(conj(Q) * Quaternion(v[1], v[2], v[3]) * Q)
+end
+
+# From https://github.com/moble/Quaternionic.jl
+dominant_eigenvector(M::Symmetric{T,SMatrix{4,4,T,16}}) where T = eigen(M).vectors[:, 4]
+dominant_eigenvector(M::Symmetric{Float64,SMatrix{4,4,Float64,16}}) = eigen(M, 4:4).vectors[:, 1]
+dominant_eigenvector(M::Symmetric{Float32,SMatrix{4,4,Float32,16}}) = eigen(M, 4:4).vectors[:, 1]
+
+"""
+    from_rotation_matrix(A)
+
+Convert 3x3 rotation matrix to quaternion.
+
+Assuming the 3x3 matrix `A` rotates a vector `v` according to
+
+    v' = A * v,
+
+we can also express this rotation in terms of a quaternion `R` such that
+
+    v' = R * v * R⁻¹.
+
+This function returns that quaternion, using Bar-Itzhack's algorithm (version 3) to allow
+for non-orthogonal matrices.  [J. Guidance, Vol. 23, No. 6, p.
+1085](http://dx.doi.org/10.2514/2.4654)
+
+!!! note
+    If you want to use this function for matrices with elements of types other than
+    `Float64` or `Float32`, you will need to (install and) import `GenericLinearAlgebra`
+    first.  The reason is that this function computes the eigen-decomposition of `A`, which
+    is only available for more generic float types via that package.  Note that you will
+    want at least version 0.3.11 of `GenericLinearAlgebra` because previous versions had a
+    bug.
+
+"""
+function from_rotation_matrix(A::AbstractMatrix)
+    @assert size(A) == (3, 3)
+    @inbounds begin
+        # Compute 3K₃ according to Eq. (2) of Bar-Itzhack.  We will just be looking for the
+        # eigenvector with the largest eigenvalue, so scaling by a strictly positive number
+        # (3, in this case) won't change that.
+        K = Symmetric(@SMatrix[
+            A[1,1]-A[2,2]-A[3,3]  A[2,1]+A[1,2]         A[3,1]+A[1,3]         A[2,3]-A[3,2];
+            0                     A[2,2]-A[1,1]-A[3,3]  A[3,2]+A[2,3]         A[3,1]-A[1,3];
+            0                     0                     A[3,3]-A[1,1]-A[2,2]  A[1,2]-A[2,1];
+            0                     0                     0               A[1,1]+A[2,2]+A[3,3]
+        ])
+
+        # Compute the *dominant* eigenvector (the one with the largest eigenvalue)
+        de = dominant_eigenvector(K)
+
+        # Convert it into a quaternion
+        R = Quaternion(de[4], -de[1], -de[2], -de[3])
+    end
+    R
 end
 
 function Base.show(io::IO, Q::Quaternion{T}) where T

@@ -1,4 +1,4 @@
-qderiv(w, q) = 0.5 * (Quaternion([w; 0.0]) * q)
+qderiv(w, q) = 0.5 * (Quaternion(w...) * q)
 wderiv(I, w, τ) = vec(I \ (τ - cross(w, (I * w))))
 
 function wqderiv(I, w, τ, q)
@@ -35,14 +35,17 @@ function rk4_rw(J, w, τ, dt)
     return w + (dt / 6.0) * (k1_w + 2 * k2_w + 2 * k3_w + k4_w)
 end
 
+# qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-# function control_loop(sensors, target_vectors, w, RW::ReactionWheel, I, dt = 0.001)
-#     q = estimateq(sensors, target_vectors, w)
-#     τ = calculate_torque(PDController(0.1, 0.001), qtarget, q, w, wtarget)
-#     τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
-#     compensation = deadzone_compensation(RW) + saturation_compensation(RW)
-#     τw = clamp(τw + compensation, -RW.maxtorque, RW.maxtorque)
-#     rwfriction = stribeck(RW)
-#     @reset RW.w = rk4_rw(RW.J, RW.w, -τw + rwfriction, dt)
-#     return rk4(I, w, τw - rwfriction, q, dt) # TODO: update cubesat state with τw + τsm + disturbances
-# end
+function control_loop(PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, dt = 0.001)
+    res, qerr = emulate_estimation(sensors, target_vectors, w)
+    qorbit2body = qeci2body * conj(qeci2orbit)
+    qestimated = qerr * qorbit2body
+    τ = calculate_torque(PD, qtarget, qestimated, w, wtarget)
+    τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
+    compensation = deadzone_compensation(RW) + saturation_compensation(RW)
+    τw = clamp.(τw + compensation, -RW.maxtorque, RW.maxtorque)
+    # rwfriction = stribeck(RW)
+    @reset RW.w = rk4_rw(RW.J, RW.w, -τw, dt)
+    return rk4(I, w, τw + τsm, qeci2body, dt), τw, τsm, res, RW # TODO: update cubesat state with τw + τsm + disturbances
+end

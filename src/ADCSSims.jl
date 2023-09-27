@@ -8,6 +8,7 @@ using StaticArrays
 using SatelliteDynamics
 using SatelliteToolboxGeomagneticField
 
+using Infiltrator
 using LinearAlgebra
 using Plots
 using Random
@@ -26,8 +27,8 @@ include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
 
-export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec
-export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, estimateq
+export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec, from_rotation_matrix
+export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, emulate_estimation
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss
