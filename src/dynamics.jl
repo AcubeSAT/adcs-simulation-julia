@@ -1,4 +1,4 @@
-qderiv(w, q) = 0.5 * (Quaternion([w; 0.0]) * q)
+qderiv(w, q) = 0.5 * (Quaternion(w...) * q)
 wderiv(I, w, τ) = vec(I \ (τ - cross(w, (I * w))))
 
 function wqderiv(I, w, τ, q)
@@ -47,5 +47,5 @@ function control_loop(PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturatio
     τw = clamp.(τw + compensation, -RW.maxtorque, RW.maxtorque)
     # rwfriction = stribeck(RW)
     @reset RW.w = rk4_rw(RW.J, RW.w, -τw, dt)
-    return rk4(I, w, τw + τsm, qeci2body, dt), τw, τsm, res # TODO: update cubesat state with τw + τsm + disturbances
+    return rk4(I, w, τw + τsm, qeci2body, dt), τw, τsm, res, RW # TODO: update cubesat state with τw + τsm + disturbances
 end

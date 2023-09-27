@@ -99,11 +99,11 @@ function run_filter_simulation(tunable_params,
 end
 
 function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qtarget)
-    qeci2body = normalize(QuaternionF64(1, 0, 0, 0))
-    w = zeros(3)
+    qeci2body = normalize(QuaternionF64(1))
+    w = @MVector [0.53, 0.53, 0.053]
     rw_w = 94.247779 * ones(3)
     sensors = (NadirSensor(), StarTracker(), SunSensor())
-    RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1)
+    RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
     iters = length(t)
     state_history = Vector{Tuple{typeof(w), typeof(qeci2body)}}(undef, iters)
     τw = Vector{Vector{Float64}}(undef, iters)
@@ -114,14 +114,13 @@ function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qta
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = Vector(rotvec(mag_eci[i], qeci2body))
         qeci2orbit = Qeci2orbit[i]
-        wqeci2body, rτw, rτsm, rres = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, 0.01*I(3), dt)
+        wqeci2body, rτw, rτsm, rres, RW = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.067,0.167]), dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
         τw[i] = rτw
         τsm[i] = rτsm
         res[i] = rres
     end
-    println(sum(res))
     return state_history, τw, τsm
 end
 
