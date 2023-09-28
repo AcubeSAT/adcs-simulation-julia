@@ -27,7 +27,6 @@ function update(state::KFState,
     KF::KalmanFilter,
     groundtruth_measurements::Tuple,
     reference_vectors::Tuple)
-
     q = state.q
     mag_eci = reference_vectors[1]
     sun_eci = reference_vectors[2]
@@ -35,7 +34,7 @@ function update(state::KFState,
     mag_body, sun_body = KF.measurement_fun(q, mag_eci, sun_eci)
     Kg = P * transpose(H_k) / (H_k * P * transpose(H_k) + KF.R)
     local_error_state = Kg * ([groundtruth_measurements[1]; groundtruth_measurements[2]] -
-                              [mag_body; sun_body])
+                         [mag_body; sun_body])
     local_error_quaternion = Quaternion([1; 0.5 * local_error_state[1:3]])
     new_q = normalize(q * local_error_quaternion)
     new_bias = state.bias + local_error_state[4:6]
