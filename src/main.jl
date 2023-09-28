@@ -36,7 +36,7 @@ initial_x = [-6.0, -16, -6, -2]
 result = optimize(objective_function,
     initial_x,
     Optim.NelderMead(),
-    Optim.Options(iterations=200, show_trace=true, g_tol=1e-15))
+    Optim.Options(iterations = 200, show_trace = true, g_tol = 1e-15))
 
 optimized_x = Optim.minimizer(result)
 tunable_params = ADCSSims.package_weights(optimized_x)
@@ -55,3 +55,13 @@ for i in 1:len
 end
 ADCSSims.plot_histories(ŷ, y)
 ADCSSims.plot_difference(y, ŷ)
+
+const jd = 2459921.0
+const norbits = 1
+const qtarget = one(QuaternionF64)
+const vecs = ADCSSims.generate_orbit_data(jd, norbits, 0.1)
+const PD = PDController(1e-4, 1e-3) # SMatrix{3,3}(I(3))
+const state, τw, τsm = ADCSSims.rotational_dynamics(PD, vecs..., qtarget)
+
+ADCSSims.plotτ(τw, τsm)
+ADCSSims.plotqs(state)
