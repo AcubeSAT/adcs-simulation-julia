@@ -1,14 +1,14 @@
-function calculate_orbit(JD, n_orbits)
+function calculate_orbit(JD, n_orbits, dt)
     epc0 = Epoch(jd_to_caldate(JD)...)
     oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
-    eci0 = sOSCtoCART(oe0, use_degrees=true)
+    eci0 = sOSCtoCART(oe0, use_degrees = true)
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
-    orb = EarthInertialState(epc0, eci0, dt=1.0,
-        mass=100.0, n_grav=20, m_grav=20,
-        drag=true, srp=true,
-        moon=true, sun=true,
-        relativity=false)
+    orb = EarthInertialState(epc0, eci0, dt = dt,
+        mass = 100.0, n_grav = 20, m_grav = 20,
+        drag = true, srp = true,
+        moon = true, sun = true,
+        relativity = false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
@@ -20,7 +20,7 @@ function run_groundtruth_simulation(params)
     q = Quaternion([1.0, 0, 0, 0])
     JD = 2459921.0
     n_orbits = 2
-    _, epc, eci = calculate_orbit(JD, n_orbits)
+    _, epc, eci = calculate_orbit(JD, n_orbits, 0.001)
     r_eci = eci[1:3, :]
     r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
     rotation_eci2ecef = rECItoECEF.(epc)
@@ -73,7 +73,6 @@ function run_filter_simulation(tunable_params,
     mag_eci,
     sun_eci,
     gyroscope_measurement)
-
     kf = KalmanFilter(transition_function,
         transition_function_jacobian,
         tunable_params[1],
@@ -97,4 +96,57 @@ function run_filter_simulation(tunable_params,
         state_estimation_array[i] = state
     end
     return state_estimation_array
+end
+
+function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qtarget)
+    qeci2body = normalize(QuaternionF64(1))
+    w = @MVector [0.53, 0.53, 0.053]
+    rw_w = 94.247779 * ones(3)
+    sensors = (NadirSensor(), StarTracker(), SunSensor())
+    RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
+    iters = length(t)
+    state_history = Vector{Tuple{typeof(w), typeof(qeci2body)}}(undef, iters)
+    τw = Vector{Vector{Float64}}(undef, iters)
+    τsm = Vector{Vector{Float64}}(undef, iters)
+    res = Vector{Bool}(undef, iters)
+    for i in 1:iters
+        nadir_body = Vector(-rotvec(normalize(r_eci[i]), qeci2body))
+        sun_body = Vector(rotvec(sun_eci[i], qeci2body))
+        mag_body = Vector(rotvec(mag_eci[i], qeci2body))
+        qeci2orbit = Qeci2orbit[i]
+        wqeci2body, rτw, rτsm, rres, RW = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.067,0.167]), dt)
+        w, qeci2body = wqeci2body
+        state_history[i] = (w, qeci2body)
+        τw[i] = rτw
+        τsm[i] = rτsm
+        res[i] = rres
+    end
+    return state_history, τw, τsm
+end
+
+function generate_orbit_data(jd, norbits, dt)
+    t, epc, eci = calculate_orbit(jd, norbits, dt)
+    r_eci = eci[1:3, :]
+    r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
+    v_eci = eci[4:6, :]
+    v_eci = [v_eci[:, i] for i in 1:size(v_eci, 2)]
+    rotation_eci2ecef = rECItoECEF.(epc)
+    r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
+    rotation_ecef2eci = rECEFtoECI.(epc)
+    mag_ecef = 1e-9 * geomagnetic_dipole_field.(r_ecef)
+    mag_ecef = [mag_ecef[i] for i in 1:size(mag_ecef, 1)]
+    mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i in 1:size(rotation_ecef2eci, 1)]
+    sun_eci = sun_position.(epc)
+    sun_eci = [normalize(sun_eci[i]) for i in 1:size(sun_eci, 1)]
+    T = eci2orbit.(r_eci, v_eci)
+    qeci2orbit = from_rotation_matrix.(T)
+    return t, r_eci, sun_eci, mag_eci, qeci2orbit, dt
+end
+
+function eci2orbit(r_eci, v_eci)
+    r = normalize(r_eci)
+    h = normalize(cross(r_eci, v_eci))
+    θ = cross(h, r)
+    T = hcat(r, θ, h)
+    return T'
 end
