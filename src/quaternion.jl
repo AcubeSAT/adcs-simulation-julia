@@ -113,7 +113,7 @@ Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
 
 function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
     Q = normalize(Q)
-    return vec(conj(Q) * Quaternion(v[1], v[2], v[3]) * Q)
+    return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
 end
 
 # From https://github.com/moble/Quaternionic.jl
