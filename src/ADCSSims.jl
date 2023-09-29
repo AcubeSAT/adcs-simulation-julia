@@ -22,6 +22,7 @@ include("parameters.jl")
 include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
+include("albedo.jl")
 
 export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
