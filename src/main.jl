@@ -59,9 +59,24 @@ ADCSSims.plot_difference(y, ŷ)
 const jd = 2459921.0
 const norbits = 1
 const qtarget = one(QuaternionF64)
+
 const vecs = ADCSSims.generate_orbit_data(jd, norbits, 0.1)
-const PD = PDController(1e-4, 1e-3) # SMatrix{3,3}(I(3))
-const state, τw, τsm = ADCSSims.rotational_dynamics(PD, vecs..., qtarget)
+
+const egm2008 = ADCSSims.GravityModels.load(ADCSSims.SatelliteToolboxGravityModels.IcgemFile, ADCSSims.SatelliteToolboxGravityModels.fetch_icgem_file(:EGM2008))
+const n_max_dP = 1
+P = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
+dP = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
+
+const PD = PDController(0.5, 1.0) # SMatrix{3,3}(I(3))
+
+const state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(PD, vecs..., qtarget, egm2008, n_max_dP, P, dP)
 
 ADCSSims.plotτ(τw, τsm)
-ADCSSims.plotqs(state)
+ADCSSims.plotwq(state)
+
+q = [s[2] for s in state]
+qorbit2body = [q1 * conj(q2) for (q1, q2) in zip(q, vecs[7])]
+ADCSSims.plotqs(qorbit2body)
+
+ADCSSims.plotτgrav(τgravs)
+ADCSSims.plotτgrav(τrmds)

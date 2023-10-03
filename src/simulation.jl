@@ -98,7 +98,7 @@ function run_filter_simulation(tunable_params,
     return state_estimation_array
 end
 
-function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qtarget)
+function rotational_dynamics(PD, t, epc, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, dt, R_ecef_to_eci, qtarget, model, max_degree, P, dP)
     qeci2body = normalize(QuaternionF64(1))
     w = @MVector [0.53, 0.53, 0.053]
     rw_w = 94.247779 * ones(3)
@@ -109,19 +109,24 @@ function rotational_dynamics(PD, t, r_eci, sun_eci, mag_eci, Qeci2orbit, dt, qta
     τw = Vector{Vector{Float64}}(undef, iters)
     τsm = Vector{Vector{Float64}}(undef, iters)
     res = Vector{Bool}(undef, iters)
+    τgravs = Vector{Vector{Float64}}(undef, iters)
+    τrmds = Vector{Vector{Float64}}(undef, iters)
+    t = epoch_to_datetime(epc)
     for i in 1:iters
         nadir_body = Vector(-rotvec(normalize(r_eci[i]), qeci2body))
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = Vector(rotvec(mag_eci[i], qeci2body))
         qeci2orbit = Qeci2orbit[i]
-        wqeci2body, rτw, rτsm, rres, RW = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.067,0.167]), dt)
+        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.142,0.142]), model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
         τw[i] = rτw
         τsm[i] = rτsm
         res[i] = rres
+        τgravs[i] = τgrav
+        τrmds[i] = τrmd
     end
-    return state_history, τw, τsm
+    return state_history, τw, τsm, τgravs, τrmds
 end
 
 function generate_orbit_data(jd, norbits, dt)
@@ -140,7 +145,7 @@ function generate_orbit_data(jd, norbits, dt)
     sun_eci = [normalize(sun_eci[i]) for i in 1:size(sun_eci, 1)]
     T = eci2orbit.(r_eci, v_eci)
     qeci2orbit = from_rotation_matrix.(T)
-    return t, r_eci, sun_eci, mag_eci, qeci2orbit, dt
+    return t, epc, r_eci, r_ecef, sun_eci, mag_eci, qeci2orbit, dt, rotation_ecef2eci
 end
 
 function eci2orbit(r_eci, v_eci)

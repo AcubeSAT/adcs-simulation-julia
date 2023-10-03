@@ -96,7 +96,21 @@ function plotτ(τw, τsm)
     return nothing
 end
 
-function plotqs(state)
+function plotτgrav(τgravs)
+    τg1 = [x[1] for x in τgravs]
+    τg2 = [x[2] for x in τgravs]
+    τg3 = [x[3] for x in τgravs]
+
+    p1 = plot(τg1, label="τg1", title="Gravity torque 1")
+    p2 = plot(τg2, label="τg2", title="Gravity torque 2")
+    p3 = plot(τg3, label="τg3", title="Gravity torque 3")
+
+    plt = plot(p1, p2, p3, layout=(3, 1), legend=false, size=(700,300))
+    display(plt)
+    return nothing
+end
+
+function plotwq(state)
     # Extracting quaternion components and vector elements
     q1 = [s[2].coeffs[1] for s in state]
     q2 = [s[2].coeffs[2] for s in state]
@@ -116,6 +130,23 @@ function plotqs(state)
     p7 = plot(v3, label="v3", title="Vector v3")
 
     plt = plot(p1, p2, p3, p4, p5, p6, p7, layout=(3,3), legend=false)
+
+    display(plt)
+    return nothing
+end
+
+function plotqs(qorbit2body)
+    q1 = [q.coeffs[1] for q in qorbit2body]
+    q2 = [q.coeffs[2] for q in qorbit2body]
+    q3 = [q.coeffs[3] for q in qorbit2body]
+    q4 = [q.coeffs[4] for q in qorbit2body]
+
+    p1 = plot(q1, label="q1", title="Quaternion q1")
+    p2 = plot(q2, label="q2", title="Quaternion q2")
+    p3 = plot(q3, label="q3", title="Quaternion q3")
+    p4 = plot(q4, label="q4", title="Quaternion q4")
+
+    plt = plot(p1, p2, p3, p4, layout=(2,2), legend=false)
 
     display(plt)
     return nothing

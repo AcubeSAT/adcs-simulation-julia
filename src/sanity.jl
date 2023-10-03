@@ -1,6 +1,6 @@
 using ConcreteStructs, LinearAlgebra, StaticArrays, Plots
 
-function plotqs(state)
+function plotwq(state)
     q1 = [s[2].coeffs[1] for s in state]
     q2 = [s[2].coeffs[2] for s in state]
     q3 = [s[2].coeffs[3] for s in state]
@@ -87,5 +87,5 @@ function control(iters, dt)
 end
 
 res, τs = control(3000, 0.1);
-plotqs(res)
+plotwq(res)
 plotτs(reduce(hcat, τs))

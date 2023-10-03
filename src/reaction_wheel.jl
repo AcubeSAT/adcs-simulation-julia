@@ -7,7 +7,7 @@
     wdeadzonemid = wdeadzone + 10
     saturationα
     deadzoneα
-    maxtorque = 0.005
+    maxtorque = 0.007
     Fc = 0.001
     b = 0.0005
     Fs = 0.0005
