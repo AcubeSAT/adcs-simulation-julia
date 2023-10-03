@@ -32,8 +32,9 @@ include("parameters.jl")
 include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
+include("frames.jl")
 
-export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec, from_rotation_matrix, to_rotation_matrix, to_euler_angles
+export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec, from_rotation_matrix, to_rotation_matrix, to_euler_angles, align_frame_with_vector
 export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, emulate_estimation
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
