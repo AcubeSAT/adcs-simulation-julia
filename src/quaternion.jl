@@ -116,6 +116,14 @@ function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
     return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
 end
 
+function Quaternion(axis::Vector, angle::Float64)
+    q1 = cos(angle / 2)
+    q2 = axis[1] * sin(angle / 2)
+    q3 = axis[2] * sin(angle / 2)
+    q4 = axis[3] * sin(angle / 2)
+    return Quaternion(SVector(q1, q2, q3, q4))
+end
+
 # From https://github.com/moble/Quaternionic.jl
 dominant_eigenvector(M::Symmetric{T,SMatrix{4,4,T,16}}) where T = eigen(M).vectors[:, 4]
 dominant_eigenvector(M::Symmetric{Float64,SMatrix{4,4,Float64,16}}) = eigen(M, 4:4).vectors[:, 1]
