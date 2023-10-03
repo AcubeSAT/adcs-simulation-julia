@@ -169,6 +169,38 @@ function from_rotation_matrix(A::AbstractMatrix)
     R
 end
 
+"""
+    to_rotation_matrix(q)
+
+Convert quaternion to 3x3 rotation matrix.
+
+Assuming the quaternion `R` rotates a vector `v` according to
+
+    v' = R * v * R⁻¹,
+
+we can also express this rotation in terms of a 3x3 matrix `ℛ` such that
+
+    v' = ℛ * v.
+
+This function returns that matrix.
+
+"""
+function to_rotation_matrix(q::Quaternion)
+    n = inv(abs2(q))
+    @SMatrix [
+        1 - 2*(q[3]^2 + q[4]^2) * n  2*(q[2]*q[3] - q[4]*q[1]) * n  2*(q[2]*q[4] + q[3]*q[1]) * n ;
+        2*(q[2]*q[3] + q[4]*q[1]) * n  1 - 2*(q[2]^2 + q[4]^2) * n  2*(q[3]*q[4] - q[2]*q[1]) * n ;
+        2*(q[2]*q[4] - q[3]*q[1]) * n  2*(q[3]*q[4] + q[2]*q[1]) * n  1 - 2*(q[2]^2 + q[3]^2) * n
+    ]
+end
+
+function to_euler_angles(q::Quaternion)
+    a0 = 2acos(√((q[1]^2+q[4]^2)/abs2(q)))
+    a1 = atan(q[4], q[1])
+    a2 = atan(-q[2], q[3])
+    @SVector [a1+a2, a0, a1-a2]
+end
+
 function Base.show(io::IO, Q::Quaternion{T}) where T
     print(io, "{")
     show(io, T)
