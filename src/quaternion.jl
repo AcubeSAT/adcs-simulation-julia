@@ -32,6 +32,16 @@ function Quaternion(w::Real)
     return Quaternion{eltype(v)}(v)
 end
 
+function Quaternion(axis::AbstractVector, angle::Real)
+    h = angle / 2
+    hsin = sin(h)
+    q1 = cos(h)
+    q2 = axis[1] * hsin
+    q3 = axis[2] * hsin
+    q4 = axis[3] * hsin
+    return Quaternion(q1, q2, q3, q4)
+end
+
 # Type-preserving copy constructor
 Quaternion{T}(Q::Quaternion{T}) where {T<:Real} = Quaternion(Q.coeffs...)
 # Type conversion copy constructor
@@ -114,14 +124,6 @@ Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
 function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
     Q = normalize(Q)
     return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
-end
-
-function Quaternion(axis::Vector, angle::Float64)
-    q1 = cos(angle / 2)
-    q2 = axis[1] * sin(angle / 2)
-    q3 = axis[2] * sin(angle / 2)
-    q4 = axis[3] * sin(angle / 2)
-    return Quaternion(SVector(q1, q2, q3, q4))
 end
 
 # From https://github.com/moble/Quaternionic.jl
