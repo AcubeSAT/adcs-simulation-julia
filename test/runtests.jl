@@ -8,5 +8,5 @@ using LinearAlgebra
     q = align_frame_with_vector(S, N, Z, Y)
     Y_new = rotvec(Y,q)
     Z_new = rotvec(Z,q)
-    @test Z_new ≈ S && dot(Y_new, Y) ≥ 0.0
+    @test Z_new ≈ S && dot(Y_new, N) ≥ 0.0
 end
