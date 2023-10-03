@@ -37,17 +37,22 @@ end
 
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, model, r_ecef, epc, max_degree, P, dP, R_ecef_to_eci, dt)
+function control_loop(sun_tracking, PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, model, r_ecef, epc, max_degree, P, dP, R_ecef_to_eci, dt)
     res, qerr = emulate_estimation(sensors, target_vectors, w)
     qorbit2body = qeci2body * conj(qeci2orbit)
-    qestimated = qerr * qorbit2body
+    qbody2sun = align_frame_with_vector(target_vectors[2], target_vectors[1], [0,0,-1],[0,1,0])
+    if sun_tracking
+        qestimated = qerr * qbody2sun
+    else
+        qestimated = qerr * qorbit2body
+    end
     τ = calculate_torque(PD, qtarget, qestimated, w, wtarget, qeci2body)
     τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
     compensation = deadzone_compensation(RW) + saturation_compensation(RW)
     τw = clamp.(τw + compensation, -RW.maxtorque, RW.maxtorque)
     # rwfriction = stribeck(RW)
     @reset RW.w = rk4_rw(RW.J, RW.w, -τw, dt)
-    τrmd = residual_dipole([-0.01235, 0.02469, -0.02273], b)
+    τrmd = residual_dipole([-0.1235, 0.2469, -0.2273], b)
     G_ecef = gravity_gradient_tensor(model, r_ecef, epc, max_degree, P, dP)
     R_ecef_to_body = to_rotation_matrix(qeci2body) * R_ecef_to_eci
     τgravity = gravity_torque(G_ecef, R_ecef_to_body, I)
