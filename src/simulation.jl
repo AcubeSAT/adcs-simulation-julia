@@ -99,7 +99,7 @@ function run_filter_simulation(tunable_params,
 end
 
 #TODO rw_w
-function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, dt, R_ecef_to_eci, qtarget, model, max_degree, P, dP)
+function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, dt, qtarget, model, max_degree, P, dP)
     rw_w = 94.247779 * ones(3)
     sensors = (NadirSensor(), StarTracker(), SunSensor())
     RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
@@ -146,7 +146,7 @@ function generate_orbit_data(jd, norbits, dt)
     sun_eci = [normalize(sun_eci[i]) for i in 1:size(sun_eci, 1)]
     T = eci2orbit.(r_eci, v_eci)
     qeci2orbit = from_rotation_matrix.(T)
-    return t, epc, r_eci, r_ecef, sun_eci, mag_eci, qeci2orbit, dt, rotation_ecef2eci
+    return t, epc, r_eci, r_ecef, sun_eci, mag_eci, qeci2orbit, rotation_ecef2eci
 end
 
 function eci2orbit(r_eci, v_eci)
