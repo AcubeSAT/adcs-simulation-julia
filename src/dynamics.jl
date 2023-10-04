@@ -35,17 +35,21 @@ function rk4_rw(J, w, τ, dt)
     return w + (dt / 6.0) * (k1_w + 2 * k2_w + 2 * k3_w + k4_w)
 end
 
+function mode_quaternion(::Type{PointingMode}, args::PointingArguments)
+    error("Mode not implemented")
+end
+function mode_quaternion(::Type{SunPointing}, args::PointingArguments)
+    return align_frame_with_vector(args.sun_body, args.nadir_body, [0,0,-1], [0,1,0])
+end
+function mode_quaternion(::Type{NadirPointing}, args::PointingArguments)
+    return args.qeci2body * conj(args.qeci2orbit)
+end
+
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(sun_tracking, PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, model, r_ecef, epc, max_degree, P, dP, R_ecef_to_eci, dt)
+function control_loop(Mode::Type{<:PointingMode}, PA::PointingArguments, PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, model, r_ecef, epc, max_degree, P, dP, R_ecef_to_eci, dt)
     res, qerr = emulate_estimation(sensors, target_vectors, w)
-    qorbit2body = qeci2body * conj(qeci2orbit)
-    qbody2sun = align_frame_with_vector(target_vectors[2], target_vectors[1], [0,0,-1],[0,1,0])
-    if sun_tracking
-        qestimated = qerr * qbody2sun
-    else
-        qestimated = qerr * qorbit2body
-    end
+    qestimated = qerr * mode_quaternion(Mode, PA)
     τ = calculate_torque(PD, qtarget, qestimated, w, wtarget, qeci2body)
     τw, τsm, mtrue = decompose_torque(τ, b, msaturation)
     compensation = deadzone_compensation(RW) + saturation_compensation(RW)

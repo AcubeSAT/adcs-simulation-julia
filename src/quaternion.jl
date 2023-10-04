@@ -121,6 +121,11 @@ Base.isnan(Q::Quaternion) = isnan(Q[1]) || isnan(Q[2]) || isnan(Q[3]) || isnan(Q
 Base.isinf(Q::Quaternion) = isinf(Q[1]) || isinf(Q[2]) || isinf(Q[3]) || isinf(Q[4])
 Base.isinteger(Q::Quaternion) = isinteger(Q[1]) && isreal(Q)
 
+function Random.rand(::Type{Quaternion})
+    elements = normalize(rand(4))
+    return Quaternion(elements)
+end
+
 function rotvec(v::A, Q::Quaternion) where {A<:AbstractVector}
     Q = normalize(Q)
     return vec(Q * Quaternion(v[1], v[2], v[3]) * conj(Q))
