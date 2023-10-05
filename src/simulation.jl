@@ -150,9 +150,9 @@ function generate_orbit_data(jd, norbits, dt)
 end
 
 function eci2orbit(r_eci, v_eci)
-    r = normalize(r_eci)
-    h = normalize(cross(r_eci, v_eci))
-    θ = cross(h, r)
-    T = hcat(r, θ, h)
+    z = -normalize(r_eci)
+    y = normalize(cross(r_eci, v_eci))
+    x = cross(y, z)
+    T = hcat(x, y, z)
     return T'
 end

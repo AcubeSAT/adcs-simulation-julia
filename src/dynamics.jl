@@ -35,16 +35,6 @@ function rk4_rw(J, w, τ, dt)
     return w + (dt / 6.0) * (k1_w + 2 * k2_w + 2 * k3_w + k4_w)
 end
 
-function mode_quaternion(::Type{PointingMode}, args::PointingArguments)
-    error("Mode not implemented")
-end
-function mode_quaternion(::Type{SunPointing}, args::PointingArguments)
-    return align_frame_with_vector(args.sun_body, args.nadir_body, [0,0,-1], [0,1,0])
-end
-function mode_quaternion(::Type{NadirPointing}, args::PointingArguments)
-    return args.qeci2body * conj(args.qeci2orbit)
-end
-
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
 function control_loop(Mode::Type{<:PointingMode}, PA::PointingArguments, PD, qeci2body, qeci2orbit, qtarget, wtarget, b, msaturation, sensors, target_vectors, w, RW::ReactionWheel, I, model, r_ecef, epc, max_degree, P, dP, R_ecef_to_eci, dt)

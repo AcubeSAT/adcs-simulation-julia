@@ -4,7 +4,7 @@ using CSV
 using Base.Iterators: partition
 
 const jd = 2459921.0
-const norbits = 3
+const norbits = 1
 const qtarget = one(QuaternionF64)
 const dt = 0.1
 
@@ -26,7 +26,7 @@ function split_into_parts(vec::Vector, n::Int)
     return parts
 end
 
-const split_vecs = [split_into_parts(vec, norbits) for vec in vecs]
+const split_vecs = [split_into_parts(vec, 3) for vec in vecs]
 
 const first_parts = [v[1] for v in split_vecs]
 const second_parts = [v[2] for v in split_vecs]
@@ -39,7 +39,7 @@ dP = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 
 const PD = PDController(1e-2, 1e-1) # SMatrix{3,3}(I(3))
 const qeci2body = one(QuaternionF64)
-const w = ADCSSims.@MVector [0.53, 0.53, 0.053]
+const w = ADCSSims.@MVector [0.0, 0.0, 0.0]
 const state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(qeci2body, w, SunPointing, PD, first_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
 const state2, τw2, τsm2, τgravs2, τrmds2 = ADCSSims.rotational_dynamics(state[end][2], state[end][1], NadirPointing, PD, second_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
 const state3, τw3, τsm3, τgravs3, τrmds3 = ADCSSims.rotational_dynamics(state2[end][2], state2[end][1], SunPointing, PD, third_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
@@ -61,12 +61,14 @@ ADCSSims.plotqs(qbody2sun)
 ADCSSims.plotτgrav(τgravs)
 ADCSSims.plotτgrav(τrmds)
 
-jd_values = [ADCSSims.jd(epc) for epc in vecs[2]]
+n = 100
 
-coeff1 = [q.coeffs[1] for q in qbody2sun]
-coeff2 = [q.coeffs[2] for q in qbody2sun]
-coeff3 = [q.coeffs[3] for q in qbody2sun]
-coeff4 = [q.coeffs[4] for q in qbody2sun]
+jd_values = [ADCSSims.jd(epc) for epc in vecs[2][1:n:end]]
+
+coeff1 = [q.coeffs[1] for q in qbody2sun[1:n:end]]
+coeff2 = [q.coeffs[2] for q in qbody2sun[1:n:end]]
+coeff3 = [q.coeffs[3] for q in qbody2sun[1:n:end]]
+coeff4 = [q.coeffs[4] for q in qbody2sun[1:n:end]]
 
 DataFrame(
     JD=jd_values,
