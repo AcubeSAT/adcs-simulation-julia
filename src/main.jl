@@ -9,28 +9,14 @@ const qtarget = one(QuaternionF64)
 const dt = 0.1
 
 const vecs = ADCSSims.generate_orbit_data(jd, norbits, dt)
-
-function split_into_parts(vec::Vector, n::Int)
-    len = length(vec)
-    size_per_part = div(len, n)
-
-    parts = Vector{typeof(vec)}(undef, n)
-    start_idx = 1
-
-    for i in 1:n-1
-        parts[i] = vec[start_idx:start_idx+size_per_part-1]
-        start_idx += size_per_part
-    end
-    parts[n] = vec[start_idx:end] # last part takes the remainder
-
-    return parts
-end
-
-const split_vecs = [split_into_parts(vec, 3) for vec in vecs]
-
-const first_parts = [v[1] for v in split_vecs]
-const second_parts = [v[2] for v in split_vecs]
-const third_parts = [v[3] for v in split_vecs]
+# 5705.307041952439 total period
+# 21                capture image (nadir for now)
+# 479,6297          GS tracking (nadir for now)
+# 5204.677341952439 sun tracking
+const vsunpre = ADCSSims.subvector(vecs, 1, 26020)
+const vimage = ADCSSims.subvector(vecs, 26021, 26231)
+const vgs = ADCSSims.subvector(vecs, 26232, 31028)
+const vsunpost = ADCSSims.subvector(vecs, 31029, :end)
 
 const egm2008 = ADCSSims.GravityModels.load(ADCSSims.SatelliteToolboxGravityModels.IcgemFile, ADCSSims.SatelliteToolboxGravityModels.fetch_icgem_file(:EGM2008))
 const n_max_dP = 1
@@ -40,11 +26,12 @@ dP = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 const PD = PDController(1e-2, 1e-1) # SMatrix{3,3}(I(3))
 const qeci2body = one(QuaternionF64)
 const w = ADCSSims.@MVector [0.0, 0.0, 0.0]
-const state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(qeci2body, w, SunPointing, PD, first_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
-const state2, τw2, τsm2, τgravs2, τrmds2 = ADCSSims.rotational_dynamics(state[end][2], state[end][1], NadirPointing, PD, second_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
-const state3, τw3, τsm3, τgravs3, τrmds3 = ADCSSims.rotational_dynamics(state2[end][2], state2[end][1], SunPointing, PD, third_parts..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(qeci2body, w, SunPointing, PD, vsunpre..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state2, τw2, τsm2, τgravs2, τrmds2 = ADCSSims.rotational_dynamics(state[end][2], state[end][1], NadirPointing, PD, vimage..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state3, τw3, τsm3, τgravs3, τrmds3 = ADCSSims.rotational_dynamics(state2[end][2], state2[end][1], NadirPointing, PD, vgs..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state4, τw4, τsm4, τgravs4, τrmds4 = ADCSSims.rotational_dynamics(state3[end][2], state3[end][1], SunPointing, PD, vsunpost..., dt, qtarget, egm2008, n_max_dP, P, dP)
 
-state_full = [state; state2; state3]
+state_full = [state; state2; state3; state4]
 
 ADCSSims.plotτ(τw, τsm)
 ADCSSims.plotwq(state_full)
