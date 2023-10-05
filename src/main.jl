@@ -3,7 +3,7 @@ using DataFrames
 using CSV
 using Base.Iterators: partition
 
-const jd = 2459921.0
+const jd = 2459921.1
 const norbits = 1
 const qtarget = one(QuaternionF64)
 const dt = 0.1
