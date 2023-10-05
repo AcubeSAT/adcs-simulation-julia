@@ -1,14 +1,14 @@
 function calculate_orbit(JD, n_orbits, dt)
     epc0 = Epoch(jd_to_caldate(JD)...)
-    oe0 = [R_EARTH + 500e3, 0.01, 75.0, 45.0, 30.0, 0.0]
-    eci0 = sOSCtoCART(oe0, use_degrees = true)
+    oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
+    eci0 = sOSCtoCART(oe0, use_degrees=true)
     T = orbit_period(oe0[1])
     epcf = epc0 + n_orbits * T
-    orb = EarthInertialState(epc0, eci0, dt = dt,
-        mass = 100.0, n_grav = 20, m_grav = 20,
-        drag = true, srp = true,
-        moon = true, sun = true,
-        relativity = false)
+    orb = EarthInertialState(epc0,
+        eci0,
+        dt=dt,
+        mass=10.64,
+        relativity=false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
@@ -104,7 +104,7 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
     sensors = (NadirSensor(), StarTracker(), SunSensor())
     RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
     iters = length(t)
-    state_history = Vector{Tuple{typeof(w), typeof(qeci2body)}}(undef, iters)
+    state_history = Vector{Tuple{typeof(w),typeof(qeci2body)}}(undef, iters)
     τw = Vector{Vector{Float64}}(undef, iters)
     τsm = Vector{Vector{Float64}}(undef, iters)
     res = Vector{Bool}(undef, iters)
@@ -118,7 +118,7 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
         mag_body = Vector(rotvec(mag_eci[i], qeci2body))
         qeci2orbit = Qeci2orbit[i]
         PA = PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit)
-        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167,0.142,0.142]), model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
+        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167, 0.142, 0.142]), model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
         τw[i] = rτw

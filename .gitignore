@@ -3,5 +3,7 @@
 *.jl.mem
 /docs/Manifest.toml
 /docs/build/
+# Output CSV for Helios
+data.csv
 
 .DS_Store
