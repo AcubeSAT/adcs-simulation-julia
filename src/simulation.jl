@@ -7,7 +7,7 @@ function calculate_orbit(JD, n_orbits, dt)
     orb = EarthInertialState(epc0,
         eci0,
         dt=dt,
-        mass=10.64,
+        mass=11.41,
         relativity=false)
 
     t, epc, eci = sim!(orb, epcf)
@@ -103,6 +103,13 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
     rw_w = 94.247779 * ones(3)
     sensors = (NadirSensor(), StarTracker(), SunSensor())
     RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
+    Ixx = 0.228128
+    Iyy = 0.248027
+    Izz = 0.091558
+    Ixy = 0.000147
+    Iyz = -0.000086
+    Izx = 0.024513
+    inertia_matrix = [[Ixx, Ixy, Izx] [Ixy, Iyy, Iyz] [Izx, Iyz, Izz]]
     iters = length(t)
     state_history = Vector{Tuple{typeof(w),typeof(qeci2body)}}(undef, iters)
     τw = Vector{Vector{Float64}}(undef, iters)
@@ -118,7 +125,7 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
         mag_body = Vector(rotvec(mag_eci[i], qeci2body))
         qeci2orbit = Qeci2orbit[i]
         PA = PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit)
-        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, diagm([0.167, 0.142, 0.142]), model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
+        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
         τw[i] = rτw
