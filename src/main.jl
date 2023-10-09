@@ -23,12 +23,12 @@ const n_max_dP = 1
 P = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 dP = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 
-const PD = PDController(1e-2, 1e-1) # SMatrix{3,3}(I(3))
+const PD = PDController(0.2, 1.0) # SMatrix{3,3}(I(3))
 const qeci2body = one(QuaternionF64)
 const w = ADCSSims.@MVector [0.0, 0.0, 0.0]
 const state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(qeci2body, w, SunPointing, PD, vsunpre..., dt, qtarget, egm2008, n_max_dP, P, dP)
-const state2, τw2, τsm2, τgravs2, τrmds2 = ADCSSims.rotational_dynamics(state[end][2], state[end][1], NadirPointing, PD, vimage..., dt, qtarget, egm2008, n_max_dP, P, dP)
-const state3, τw3, τsm3, τgravs3, τrmds3 = ADCSSims.rotational_dynamics(state2[end][2], state2[end][1], NadirPointing, PD, vgs..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state2, τw2, τsm2, τgravs2, τrmds2 = ADCSSims.rotational_dynamics(state[end][2], state[end][1], CamPointing, PD, vimage..., dt, qtarget, egm2008, n_max_dP, P, dP)
+const state3, τw3, τsm3, τgravs3, τrmds3 = ADCSSims.rotational_dynamics(state2[end][2], state2[end][1], GSPointing, PD, vgs..., dt, qtarget, egm2008, n_max_dP, P, dP)
 const state4, τw4, τsm4, τgravs4, τrmds4 = ADCSSims.rotational_dynamics(state3[end][2], state3[end][1], SunPointing, PD, vsunpost..., dt, qtarget, egm2008, n_max_dP, P, dP)
 
 state_full = [state; state2; state3; state4]

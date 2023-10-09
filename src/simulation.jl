@@ -124,7 +124,7 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = Vector(rotvec(mag_eci[i], qeci2body))
         qeci2orbit = Qeci2orbit[i]
-        PA = PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit)
+        PA = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), StaticPointingArgs(60.7483, -0.85803, 41.7614, 26.2208))
         wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
@@ -146,7 +146,9 @@ function generate_orbit_data(jd, norbits, dt)
     rotation_eci2ecef = rECItoECEF.(epc)
     r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
     rotation_ecef2eci = rECEFtoECI.(epc)
-    mag_ecef = 1e-9 * geomagnetic_dipole_field.(r_ecef)
+    year = jd_to_caldate(jd)[1] 
+    r, ϕ, θ = map(field -> [getfield(item, field) for item in SphericalFromCartesian().(r_ecef)], (:r, :ϕ, :θ))
+    mag_ecef = 1e-9 * ADCSSims.igrf.(year, r, ϕ, θ)
     mag_ecef = [mag_ecef[i] for i in 1:size(mag_ecef, 1)]
     mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i in 1:size(rotation_ecef2eci, 1)]
     sun_eci = sun_position.(epc)
