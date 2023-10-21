@@ -54,7 +54,7 @@ function calculateAlbedo(satPosition, sunPosition, refectivityData)
             gridTheta = gridRadians[1]
             gridPhi = gridRadians[2]
 
-            grid = CartesianFromSpherical()([gridTheta, π / 2 - gridPhi, earthRadius])
+            grid = CartesianFromSpherical()([earthRadius, gridTheta, π / 2 - gridPhi])
 
             satelliteDistance = norm(satPosition - grid)
             
