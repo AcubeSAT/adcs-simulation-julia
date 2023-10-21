@@ -35,41 +35,9 @@ function gridAngle(loopI, loopJ, sunIndex_i, sunIndex_j)
     angle = acos(sin(loopRadians[2]) * sin(sunRadians[2])* cos(loopRadians[1] - sunRadians[1]) + cos(loopRadians[2]) * cos(sunRadians[2]))
 end 
 
-# Transformation function of cartesian coordinates to spherical coordinates.
-# Maybe we can move this to a more general source file or add a relevant package to the project.
-function cartesian2spherical(cartesianVector)
-    x = cartesianVector[1]
-    y = cartesianVector[2]
-    z = cartesianVector[3]
-
-    theta = atan(sqrt(x^2+y^2) / z)
-    phi = atan(y / x)
-
-    transformationMatrix = [transpose([sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)]);
-                            transpose([cos(theta) * cos(phi), cos(theta) * sin(phi), -sin(theta)]);
-                            transpose([-sin(phi), cos(phi), 0])
-                            ]
-
-    sphericalVector = transformationMatrix * cartesianVector
-end
-
-# Transformation function of spherical coordinates to cartesian coordinates.
-# Maybe we can move this to a more general source file or add a relevant package to the project.
-function spherical2cartesian(sphericalVector)
-    theta = sphericalVector[1]
-    phi = sphericalVector[2]
-
-    transformationMatrix = inv([transpose([sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta)]);  
-                            transpose([cos(theta) * cos(phi), cos(theta) * sin(phi), -sin(theta)]);
-                            transpose([-sin(phi), cos(phi), 0])
-                            ])
-    
-    cartesianVector = transformationMatrix * sphericalVector
-end
-
 # All vector parameters of the following function must be expressed in ECEF frame
 function calculateAlbedo(satPosition, sunPosition, refectivityData)
-    sunPositionSpherical = cartesian2spherical(sunPosition)
+    sunPositionSpherical = SphericalFromCartesian()(sunPosition)
     sunPositionSpherical[2] = π / 2 - sunPositionSpherical[2]
 
     sunIndices = rad2ind(sunPositionSpherical[1], sunPositionSpherical[2])
@@ -86,7 +54,7 @@ function calculateAlbedo(satPosition, sunPosition, refectivityData)
             gridTheta = gridRadians[1]
             gridPhi = gridRadians[2]
 
-            grid = spherical2cartesian([gridTheta, π / 2 - gridPhi, earthRadius])
+            grid = CartesianFromSpherical()([gridTheta, π / 2 - gridPhi, earthRadius])
 
             satelliteDistance = norm(satPosition - grid)
             
