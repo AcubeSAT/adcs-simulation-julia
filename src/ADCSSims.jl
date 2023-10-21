@@ -10,6 +10,7 @@ using SatelliteToolboxGeomagneticField
 using LinearAlgebra
 using Plots
 using Statistics
+using CoordinateTransformations
 
 include("quaternion.jl")
 include("reaction_wheel.jl")
