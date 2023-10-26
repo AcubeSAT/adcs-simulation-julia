@@ -11,6 +11,7 @@ using SatelliteDynamics
 using SatelliteToolboxGeomagneticField
 using SatelliteToolboxGravityModels
 
+using BenchmarkTools
 using Infiltrator
 
 using Dates
