@@ -53,6 +53,7 @@ jobs:
         run: |
           julia --project=docs/ -e '
             using Pkg
+            Pkg.rm("ADCSSims")
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - uses: julia-actions/julia-buildpkg@v1
