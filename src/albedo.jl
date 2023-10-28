@@ -2,11 +2,14 @@
     satPosition # ECEF position vector of satellite
     sunPosition # ECEF position vector of Sun
     reflectivityData # reflectivity value of each grid
-    earthRadius = 6371.01 * 10^3
+    EMR = 6371.01 * 10^3 # Earth Mean Radius in meters
     TOMSrows = 180
     TOMScolumns = 288
     dx = 2π / TOMScolumns
     dy = π / TOMSrows
+    dPhi = deg2rad(180 / TOMSrows)
+    dTheta = deg2rad(360 / TOMScolumns)
+    dPhiHalf = dPhi / 2 
     solarIrradiance = 1
 end
 
@@ -24,13 +27,10 @@ end
 function calculateCellArea(i, j, AP::AlbedoParameters)
     radians = ind2rad(i, j, AP)
 
-    deltaPhi = deg2rad(180 / AP.TOMSrows)
-    deltaTheta = deg2rad(360 / AP.TOMScolumns)
+    maxPhi = radians[2] + AP.dPhiHalf
+    minPhi = radians[2] - AP.dPhiHalf
 
-    maxPhi = radians[2] + deltaPhi / 2
-    minPhi = radians[2] - deltaPhi / 2
-
-    area = AP.earthRadius * AP.earthRadius * deltaTheta * (cos(minPhi) - cos(maxPhi))
+    area = AP.EMR * AP.EMR * deltaTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
 function gridAngle(loopI, loopJ, sunIndexI, sunIndexJ, AP::AlbedoParameters)
@@ -59,9 +59,9 @@ function calculateAlbedo(AP::AlbedoParameters)
             gridTheta = gridRadians[1]
             gridPhi = gridRadians[2]
 
-            grid = CartesianFromSpherical()([AP.earthRadius, gridTheta, π / 2 - gridPhi])
+            grid = CartesianFromSpherical()([AP.EMR, gridTheta, π / 2 - gridPhi])
 
-            satelliteDistance = norm(AP.satPositionsatPosition - grid)
+            satelliteDistance = norm(AP.satPosition - grid)
             
             satelliteGridAngle = acos((transpose((AP.satPosition - grid) / satelliteDistance)) * grid / norm(grid))
 
