@@ -11,8 +11,8 @@
 end
 
 function rad2ind(theta, phi, AP::AlbedoParameters)
-    i = round((π - phi - AP.dy / 2) / dy)
-    j = round((π + theta - AP.dx / 2) / dx)
+    i = round((π - phi - AP.dy / 2) / AP.dy)
+    j = round((π + theta - AP.dx / 2) / AP.dx)
 
     (i, j) = (max(0, i), max(0, j))
 end
