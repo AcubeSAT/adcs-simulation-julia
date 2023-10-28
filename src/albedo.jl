@@ -17,12 +17,12 @@ function rad2ind(theta, phi, AP::AlbedoParameters)
     (i, j) = (max(0, i), max(0, j))
 end
 
-function ind2rad(index_i, index_j, AP::AlbedoParameters)
-    (theta, phi) = (-π + AP.dx / 2 + index_j * AP.dx, π - AP.dy / 2 - index_i * AP.dy)
+function ind2rad(i, j, AP::AlbedoParameters)
+    (theta, phi) = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
 end
 
-function calculateCellArea(index_i, index_j, AP::AlbedoParameters)
-    radians = ind2rad(index_i, index_j, AP)
+function calculateCellArea(i, j, AP::AlbedoParameters)
+    radians = ind2rad(i, j, AP)
 
     deltaPhi = deg2rad(180 / AP.TOMSrows)
     deltaTheta = deg2rad(360 / AP.TOMScolumns)
@@ -33,9 +33,9 @@ function calculateCellArea(index_i, index_j, AP::AlbedoParameters)
     area = AP.earthRadius * AP.earthRadius * deltaTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
-function gridAngle(loopI, loopJ, sunIndex_i, sunIndex_j, AP::AlbedoParameters)
+function gridAngle(loopI, loopJ, sunIndexI, sunIndexJ, AP::AlbedoParameters)
     loopRadians = ind2rad(loopI, loopJ, AP)
-    sunRadians = ind2rad(sunIndex_i, sunIndex_j, AP)
+    sunRadians = ind2rad(sunIndexI, sunIndexJ, AP)
 
     angle = acos(sin(loopRadians[2]) * sin(sunRadians[2])* cos(loopRadians[1] - sunRadians[1]) + cos(loopRadians[2]) * cos(sunRadians[2]))
 end 
