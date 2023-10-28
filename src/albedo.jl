@@ -33,9 +33,9 @@ function calculateCellArea(i, j, AP::AlbedoParameters)
     area = AP.EMR * AP.EMR * deltaTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
-function gridAngle(loopI, loopJ, sunIndexI, sunIndexJ, AP::AlbedoParameters)
-    loopRadians = ind2rad(loopI, loopJ, AP)
-    sunRadians = ind2rad(sunIndexI, sunIndexJ, AP)
+function gridAngle(I, J, sunI, sunJ, AP::AlbedoParameters)
+    loopRadians = ind2rad(I, J, AP)
+    sunRadians = ind2rad(sunI, sunJ, AP)
 
     angle = acos(sin(loopRadians[2]) * sin(sunRadians[2])* cos(loopRadians[1] - sunRadians[1]) + cos(loopRadians[2]) * cos(sunRadians[2]))
 end 
