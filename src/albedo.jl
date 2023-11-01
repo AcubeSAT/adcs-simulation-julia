@@ -17,11 +17,11 @@ function rad2ind(theta, phi, AP::AlbedoParameters)
     i = round((π - phi - AP.dy / 2) / AP.dy)
     j = round((π + theta - AP.dx / 2) / AP.dx)
 
-    (i, j) = (max(0, i), max(0, j))
+    return (i, j) = (max(0, i), max(0, j))
 end
 
 function ind2rad(i, j, AP::AlbedoParameters)
-    (theta, phi) = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
+    return (theta, phi) = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
 end
 
 function cellArea(i, j, AP::AlbedoParameters)
@@ -30,14 +30,14 @@ function cellArea(i, j, AP::AlbedoParameters)
     maxPhi = radians[2] + AP.dPhiHalf
     minPhi = radians[2] - AP.dPhiHalf
 
-    AP.radius * AP.radius * deltaTheta * (cos(minPhi) - cos(maxPhi))
+    return AP.radius * AP.radius * deltaTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
 function gridAngle(i, j, iSun, jSun, AP::AlbedoParameters)
     loopRad = ind2rad(i, j, AP)
     sunRad = ind2rad(iSun, jSun, AP)
 
-    acos(sin(loopRad[2]) * sin(sunRad[2]) * cos(loopRad[1] - sunRad[1]) + cos(loopRad[2]) * cos(sunRad[2]))
+    return acos(sin(loopRad[2]) * sin(sunRad[2]) * cos(loopRad[1] - sunRad[1]) + cos(loopRad[2]) * cos(sunRad[2]))
 end 
 
 function calculateAlbedo(AP::AlbedoParameters)
