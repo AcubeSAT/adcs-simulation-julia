@@ -17,7 +17,8 @@ function rad2ind(theta, phi, AP::AlbedoParameters)
     i = round((π - phi - AP.dy / 2) / AP.dy)
     j = round((π + theta - AP.dx / 2) / AP.dx)
 
-    return (i, j) = (max(0, i), max(0, j))
+    k = firstindex(AP.TOMSMatrix)
+    return (ifelse(i < k, k, i), ifelse(j < k, k, j))
 end
 
 function ind2rad(i, j, AP::AlbedoParameters)
