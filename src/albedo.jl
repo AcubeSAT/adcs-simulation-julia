@@ -30,7 +30,7 @@ function cellArea(i, j, AP::AlbedoParameters)
     maxPhi = radians[2] + AP.dPhiHalf
     minPhi = radians[2] - AP.dPhiHalf
 
-    return AP.radius * AP.radius * deltaTheta * (cos(minPhi) - cos(maxPhi))
+    return AP.radius * AP.radius * AP.dTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
 function gridAngle(i, j, iSun, jSun, AP::AlbedoParameters)
