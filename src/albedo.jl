@@ -1,16 +1,16 @@
 @kwdef @concrete struct AlbedoParameters
-    satPosition # ECEF position vector of satellite
-    sunPosition # ECEF position vector of Sun
-    reflectivityData # reflectivity value of each grid
-    EMR = 6371.01 * 10^3 # Earth Mean Radius in meters
-    TOMSrows = 180
-    TOMScolumns = 288
+    satECEF                    # ECEF position vector of satellite
+    sunECEF                    # ECEF position vector of Sun
+    TOMSMatrix                 # Matrix containing the reflectivity value of each grid, from NASA TOMS project
+    radius = 6371.01 * 10^3    # Mean Earth radius in meters
+    irr = 1                    # Solar irradiance constant  
+    TOMSrows = 180             # TOMS' matrix number of rows
+    TOMScolumns = 288          # TOMS' matrix number of columns
     dx = 2π / TOMScolumns
     dy = π / TOMSrows
     dPhi = deg2rad(180 / TOMSrows)
     dTheta = deg2rad(360 / TOMScolumns)
     dPhiHalf = dPhi / 2 
-    solarIrradiance = 1
 end
 
 function rad2ind(theta, phi, AP::AlbedoParameters)
@@ -24,48 +24,51 @@ function ind2rad(i, j, AP::AlbedoParameters)
     (theta, phi) = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
 end
 
-function calculateCellArea(i, j, AP::AlbedoParameters)
+function cellArea(i, j, AP::AlbedoParameters)
     radians = ind2rad(i, j, AP)
 
     maxPhi = radians[2] + AP.dPhiHalf
     minPhi = radians[2] - AP.dPhiHalf
 
-    area = AP.EMR * AP.EMR * deltaTheta * (cos(minPhi) - cos(maxPhi))
+    AP.radius * AP.radius * deltaTheta * (cos(minPhi) - cos(maxPhi))
 end 
 
-function gridAngle(I, J, sunI, sunJ, AP::AlbedoParameters)
-    loopRadians = ind2rad(I, J, AP)
-    sunRadians = ind2rad(sunI, sunJ, AP)
+function gridAngle(i, j, iSun, jSun, AP::AlbedoParameters)
+    loopRad = ind2rad(i, j, AP)
+    sunRad = ind2rad(iSun, jSun, AP)
 
-    angle = acos(sin(loopRadians[2]) * sin(sunRadians[2])* cos(loopRadians[1] - sunRadians[1]) + cos(loopRadians[2]) * cos(sunRadians[2]))
+    acos(sin(loopRad[2]) * sin(sunRad[2]) * cos(loopRad[1] - sunRad[1]) + cos(loopRad[2]) * cos(sunRad[2]))
 end 
 
-# All vector parameters of the following function must be expressed in ECEF frame
 function calculateAlbedo(AP::AlbedoParameters)
-    sunPositionSpherical = SphericalFromCartesian()(AP.sunPosition)
-    sunPositionSpherical[2] = π / 2 - sunPositionSpherical[2]
+    sunECEFSpherical = SphericalFromCartesian()(AP.sunECEF)
+    sunECEFSpherical[2] = π / 2 - sunECEFSpherical[2]
+    indSun = rad2ind(sunECEFSpherical[1], sunECEFSpherical[2], AP)
 
-    sunIndices = rad2ind(sunPositionSpherical[1], sunPositionSpherical[2], AP)
+    for p in 1 : AP.TOMSrows
+        for k in 1 : AP.TOMScolumns
 
-    for p in 1:AP.TOMSrows
-        for k in 1:AP.TOMScolumns
-
-            angleOfIncidentSolarIrradiance = gridAngle(p, k, sunIndices[1], sunIndices[2], AP)
-
-            angleOfIncidentSolarIrradiance = min(angleOfIncidentSolarIrradiance, π / 2 )
+            # calculate angle of incident irradiance
+            irrAngle = gridAngle(p, k, indSun[1], indSun[2], AP)       
+            irrAngle = min(irrAngle, π / 2)
             
-            incidentPower = AP.solarIrradiance * calculateCellArea(p, k, AP) * cos(angleOfIncidentSolarIrradiance)
-            gridRadians = ind2rad(p, k, AP)
-            gridTheta = gridRadians[1]
-            gridPhi = gridRadians[2]
+            # calculate incident power 
+            power = AP.irr * cellArea(p, k, AP) * cos(irrAngle)
 
-            grid = CartesianFromSpherical()([AP.EMR, gridTheta, π / 2 - gridPhi])
+            # calculate cartesian position of grid in ECEF
+            gridRad = ind2rad(p, k, AP)
+            gridTheta = gridRad[1]
+            gridPhi = gridRad[2]
+            grid = CartesianFromSpherical()([AP.radius, gridTheta, π / 2 - gridPhi])
 
-            satelliteDistance = norm(AP.satPosition - grid)
+            # calculate the distance from grid to satellite  
+            satDist = norm(AP.satECEF - grid)
             
-            satelliteGridAngle = acos((transpose((AP.satPosition - grid) / satelliteDistance)) * grid / norm(grid))
+            # calculate angle between satellite and grid
+            satGridAngle = acos((transpose((AP.satECEF - grid) / satDist)) * grid / norm(grid))
 
-            albedo[p, k] = incidentPower * AP.refectivityData[p, k] * cos(satelliteGridAngle) / (π * satelliteDistance^2)
+            # finally, calculate albedo value 
+            albedo[p, k] = power * AP.TOMSMatrix[p, k] * cos(satGridAngle) / (π * satDist^2)
 
         end
     end
