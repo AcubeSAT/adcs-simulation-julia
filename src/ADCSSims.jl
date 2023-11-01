@@ -11,6 +11,7 @@ using LinearAlgebra
 using Plots
 using Statistics
 using CoordinateTransformations
+using PoissonRandom
 
 include("quaternion.jl")
 include("reaction_wheel.jl")
