@@ -46,9 +46,10 @@ function control_loop(Mode::Type{<:PointingMode}, PA::PointingArguments, PD, qec
     τw = clamp.(τw + compensation, -RW.maxtorque, RW.maxtorque)
     # rwfriction = stribeck(RW)
     @reset RW.w = rk4_rw(RW.J, RW.w, -τw, dt)
-    τrmd = residual_dipole([-0.1235, 0.2469, -0.2273], b)
+    m = @SVector [-0.1235, 0.2469, -0.2273]
+    τrmd = residual_dipole(m, b)
     G_ecef = gravity_gradient_tensor(model, r_ecef, epc, max_degree, P, dP)
-    R_ecef_to_body = to_rotation_matrix(qeci2body) * R_ecef_to_eci
+    R_ecef_to_body = to_rotation_matrix(qeci2body) * SMatrix{3,3}(R_ecef_to_eci)
     τgravity = gravity_torque(G_ecef, R_ecef_to_body, I)
     return rk4(I, w, τw + τsm + τrmd + τgravity, qeci2body, dt), τw, τsm, res, RW, τgravity, τrmd # TODO: update cubesat state with τw + τsm + disturbances
 end

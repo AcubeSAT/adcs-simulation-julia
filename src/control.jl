@@ -5,7 +5,7 @@ end
 
 function calculate_torque(PD::PDController, qtarget, qestimated, w, wtarget, qeci2body)
     qrel = qestimated * conj(qtarget)
-    w_io_i = [0.0, -0.00014277091387915417, 0.0010992751451387854] # w of orbit frame, rad/s
+    w_io_i = @SVector [0.0, -0.00014277091387915417, 0.0010992751451387854] # w of orbit frame, rad/s
     w_io_b = rotvec(w_io_i, qeci2body)
     wrel = w - w_io_b
     werr = wrel - wtarget

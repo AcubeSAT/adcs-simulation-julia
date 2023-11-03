@@ -20,7 +20,7 @@ function gravity_gradient_tensor(model, p, t, max_degree, P, dP; δ=1e-3)
 
         @. T[:, i] = (g_forward - g_backward) / (2δ)
     end
-    return T
+    return SMatrix(T)
 end
 
 function gravity_torque(G_ecef, R_ecef_to_body, I)
