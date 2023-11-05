@@ -1,14 +1,11 @@
 abstract type PointingMode end
 struct SunPointing <: PointingMode end
 struct NadirPointing <: PointingMode end
-struct GSPointing <: PointingMode end
-struct CamPointing <: PointingMode end
+struct GroundTargetPointing <: PointingMode end
 
 @concrete struct StaticPointingArgs
-    gs_lat
-    gs_lon
-    cam_lat
-    cam_lon
+    target_lat
+    target_lon
 end
 
 @concrete struct DynamicPointingArgs
@@ -33,12 +30,10 @@ end
 function mode_quaternion(::Type{NadirPointing}, args::PointingArguments)
     return args.dynamic_args.qeci2body * conj(args.dynamic_args.qeci2orbit)
 end
-function mode_quaternion(::Type{GSPointing}, args::PointingArguments)
-    return target_quaternion(args.static_args.gs_lat, args.static_args.gs_lon, args.dynamic_args)
+function mode_quaternion(::Type{GroundTargetPointing}, args::PointingArguments)
+    return target_quaternion(args.static_args.target_lat, args.static_args.target_lon, args.dynamic_args)
 end
-function mode_quaternion(::Type{CamPointing}, args::PointingArguments)
-    return target_quaternion(args.static_args.cam_lat, args.static_args.cam_lon, args.dynamic_args)
-end
+
 
 function target_quaternion(lat, lon, args)
     lat = deg2rad(lat)
@@ -61,4 +56,14 @@ function target_quaternion(lat, lon, args)
     vec_cubesat_to_location_body = rotvec(vec_cubesat_to_location_eci, args.qeci2body)
     # Compute the quaternion for the desired rotation
     return align_frame_with_vector(vec_cubesat_to_location_body, normalize(args.sun_body), [1.0,0,0], [0,0,-1.0] )
+end
+
+function parse_pointing_mode(pm_string::String)
+    if pm_string == "NadirPointing"
+        return NadirPointing
+    elseif pm_string == "GroundTargetPointing"
+        return GroundTargetPointing
+    elseif pm_string == "SunPointing"
+        return SunPointing
+    end
 end

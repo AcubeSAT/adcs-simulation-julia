@@ -1,9 +1,9 @@
-function calculate_orbit(jd, n_orbits, dt)
+function calculate_orbit(jd, total_time, dt)
     epc0 = Epoch(jd_to_caldate(jd)...)
     oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
     eci0 = sOSCtoCART(oe0, use_degrees=true)
-    T = orbit_period(oe0[1])
-    epcf = epc0 + n_orbits * T
+    # T = orbit_period(oe0[1])
+    epcf = epc0 + total_time
     orb = EarthInertialState(epc0,
         eci0,
         dt=dt,
@@ -99,7 +99,7 @@ function run_filter_simulation(tunable_params,
 end
 
 #TODO rw_w
-function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, dt, qtarget, model, max_degree, P, dP)
+function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, dt, qtarget, model, max_degree, P, dP)
     rw_w = 94.247779 * ones(3)
     sensors = (NadirSensor(), StarTracker(), SunSensor())
     RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
@@ -124,7 +124,7 @@ function rotational_dynamics(qeci2body, w, pointing_mode, PD, t, epc::Vector{Epo
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = rotvec(mag_eci[i], qeci2body)
         qeci2orbit = Qeci2orbit[i]
-        PA = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), StaticPointingArgs(60.7483, -0.85803, 41.7614, 26.2208))
+        PA = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
         wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
         state_history[i] = (w, qeci2body)
