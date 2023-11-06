@@ -26,7 +26,7 @@ const PD = PDController(0.2, 1.0)
 function run_pointing_modes(df::DataFrame)
     cumulative_start_time = 0.0
     qeci2body = one(QuaternionF64)
-    w = ADCSSims.@MVector [0.0, 0.0, 0.0]
+    w = ADCSSims.MVector{3}(config["simulation"]["w"])
     state_history = []  
     τw_history, τsm_history, τgravs_history, τrmds_history = [], [], [], []
     for row in eachrow(df)
@@ -69,10 +69,6 @@ nadir_eci = -ADCSSims.normalize.(vecs[3])
 qbody2sun = [align_frame_with_vector(rotvec(sun_eci[i], q[i]), rotvec(nadir_eci[i], q[i]), [0, 0, -1], [0, 1, 0]) for i in 1:length(q)]
 
 ADCSSims.plotqs(qbody2sun)
-# ADCSSims.plotτgrav(τgravs)
-# ADCSSims.plotτgrav(τrmds)
-# ADCSSims.plotτ(τw_history, τsm_history)
-# ADCSSims.plotwq(state_history)
 
 n = 1
 
