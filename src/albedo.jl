@@ -1,4 +1,4 @@
-@kwdef @concrete struct AlbedoParameters
+@kwdef @concrete mutable struct AlbedoParameters
     satECEF                    # ECEF position vector of satellite
     sunECEF                    # ECEF position vector of Sun
     TOMSMatrix                 # Matrix containing the reflectivity value of each grid, from NASA TOMS project
