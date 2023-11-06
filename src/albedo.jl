@@ -69,7 +69,7 @@ function calculateAlbedo(AP::AlbedoParameters)
             satDist = norm(AP.satECEF - grid)
             
             # calculate angle between satellite and grid
-            satGridAngle = acos((transpose((AP.satECEF - grid) / satDist)) * grid / norm(grid))
+            satGridAngle = acos(dot(AP.satECEF - grid, grid) / (satDist * norm(grid)))
 
             # finally, calculate albedo value 
             albedo[p, k] = power * AP.TOMSMatrix[p, k] * cos(satGridAngle) / (π * satDist^2)
