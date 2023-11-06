@@ -42,9 +42,12 @@ function gridAngle(i, j, iSun, jSun, AP::AlbedoParameters)
 end 
 
 function calculateAlbedo(AP::AlbedoParameters)
-    sunECEFSpherical = SphericalFromCartesian()(AP.sunECEF)
+    sunSph = SphericalFromCartesian()(AP.sunECEF)
+    sunECEFSpherical = [sunSph.r, sunSph.θ, sunSph.ϕ]
     sunECEFSpherical[2] = π / 2 - sunECEFSpherical[2]
     indSun = rad2ind(sunECEFSpherical[1], sunECEFSpherical[2], AP)
+
+    albedo = zeros(AP.TOMSrows, AP.TOMScolumns)
 
     for p in 1 : AP.TOMSrows
         for k in 1 : AP.TOMScolumns
@@ -60,7 +63,7 @@ function calculateAlbedo(AP::AlbedoParameters)
             gridRad = ind2rad(p, k, AP)
             gridTheta = gridRad[1]
             gridPhi = gridRad[2]
-            grid = CartesianFromSpherical()([AP.radius, gridTheta, π / 2 - gridPhi])
+            grid = CartesianFromSpherical()(Spherical(AP.radius, gridTheta, π / 2 - gridPhi))
 
             # calculate the distance from grid to satellite  
             satDist = norm(AP.satECEF - grid)
