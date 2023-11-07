@@ -16,7 +16,17 @@ const jd = config["simulation"]["jd"]
 const qtarget = ADCSSims.Quaternion(config["simulation"]["qtarget"])
 const dt = config["simulation"]["dt"]
 const total_time = get_total_time(schedule_df)
-const vecs = ADCSSims.generate_orbit_data(jd, total_time, dt)
+
+# orbital_elements = [ADCSSims.R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
+const semi_major_axis = config["orbit"]["semi_major_axis"] + ADCSSims.R_EARTH
+const eccentricity =  config["orbit"]["eccentricity"]
+const inclination = config["orbit"]["inclination"]
+const RAAN = config["orbit"]["RAAN"]
+const argument_of_perigee = config["orbit"]["argument_of_perigee"]
+const mean_anomaly = config["orbit"]["mean_anomaly"]
+const orbital_elements = [semi_major_axis,eccentricity,inclination,RAAN,argument_of_perigee,mean_anomaly]
+
+const vecs = ADCSSims.generate_orbit_data(jd, total_time, dt, orbital_elements)
 const egm2008 = ADCSSims.GravityModels.load(ADCSSims.SatelliteToolboxGravityModels.IcgemFile, ADCSSims.SatelliteToolboxGravityModels.fetch_icgem_file(:EGM2008))
 const n_max_dP = 1
 const P = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)

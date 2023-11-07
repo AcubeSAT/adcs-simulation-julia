@@ -34,7 +34,6 @@ function mode_quaternion(::Type{GroundTargetPointing}, args::PointingArguments)
     return target_quaternion(args.static_args.target_lat, args.static_args.target_lon, args.dynamic_args)
 end
 
-
 function target_quaternion(lat, lon, args)
     lat = deg2rad(lat)
     lon = deg2rad(lon)

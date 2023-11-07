@@ -1,7 +1,7 @@
-function calculate_orbit(jd, total_time, dt)
+function calculate_orbit(jd, total_time, dt, orbital_elements)
     epc0 = Epoch(jd_to_caldate(jd)...)
-    oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
-    eci0 = sOSCtoCART(oe0, use_degrees=true)
+    # oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
+    eci0 = sOSCtoCART(orbital_elements, use_degrees=true)
     # T = orbit_period(oe0[1])
     epcf = epc0 + total_time
     orb = EarthInertialState(epc0,
@@ -137,8 +137,8 @@ function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, 
     return state_history, τw, τsm, τgravs, τrmds
 end
 
-function generate_orbit_data(jd, norbits, dt)
-    t, epc, eci = calculate_orbit(jd, norbits, dt)
+function generate_orbit_data(jd, total_time, dt, orbital_elements)
+    t, epc, eci = calculate_orbit(jd, total_time, dt, orbital_elements)
     r_eci = eci[1:3, :]
     r_eci = [r_eci[:, i] for i in 1:size(r_eci, 2)]
     v_eci = eci[4:6, :]
