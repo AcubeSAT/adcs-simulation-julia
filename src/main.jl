@@ -14,6 +14,7 @@ const schedule_df = CSV.File("schedule.csv", types=[Float64, String, Union{Missi
 
 const jd = config["simulation"]["jd"]
 const qtarget = ADCSSims.Quaternion(config["simulation"]["qtarget"])
+const wtarget = config["simulation"]["wtarget"]
 const dt = config["simulation"]["dt"]
 const total_time = get_total_time(schedule_df)
 
@@ -32,8 +33,19 @@ const n_max_dP = 1
 const P = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 const dP = Matrix{Float64}(undef, n_max_dP + 1, n_max_dP + 1)
 const PD = PDController(0.2, 1.0)
+const m = @SVector [-0.1235, 0.2469, -0.2273]
+const msaturation = rand(3)
+const sensors = (NadirSensor(), StarTracker(), SunSensor())
+Ixx = 0.228128
+Iyy = 0.248027
+Izz = 0.091558
+Ixy = 0.000147
+Iyz = -0.000086
+Izx = 0.024513
+inertia_matrix = @SMatrix [[Ixx, Ixy, Izx] [Ixy, Iyy, Iyz] [Izx, Iyz, Izz]]
+const Params = SimulationParams(PD, qtarget, wtarget, egm2008, n_max_dP, P, dP, msaturation, sensors, inertia_matrix, dt, m)
 
-function run_pointing_modes(df::DataFrame)
+function run_pointing_modes(df::DataFrame,)
     cumulative_start_time = 0.0
     qeci2body = one(QuaternionF64)
     w = ADCSSims.MVector{3}(config["simulation"]["w"])
@@ -49,8 +61,7 @@ function run_pointing_modes(df::DataFrame)
         end_index = Int(ceil(end_time / dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
         state, τw, τsm, τgravs, τrmds = ADCSSims.rotational_dynamics(
-            qeci2body, w, pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), PD, vectors_slice..., dt, qtarget, egm2008, n_max_dP, P, dP
-        )
+            qeci2body, w, pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), PD, vectors_slice..., Params)
         append!(state_history, state)
         append!(τw_history, τw)
         append!(τsm_history, τsm)

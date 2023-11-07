@@ -99,17 +99,8 @@ function run_filter_simulation(tunable_params,
 end
 
 #TODO rw_w
-function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, dt, qtarget, model, max_degree, P, dP)
+function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, Params::SimulationParams, SC::SimulationContext)
     rw_w = 94.247779 * ones(3)
-    sensors = (NadirSensor(), StarTracker(), SunSensor())
-    RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
-    Ixx = 0.228128
-    Iyy = 0.248027
-    Izz = 0.091558
-    Ixy = 0.000147
-    Iyz = -0.000086
-    Izx = 0.024513
-    inertia_matrix = @SMatrix [[Ixx, Ixy, Izx] [Ixy, Iyy, Iyz] [Izx, Iyz, Izz]]
     iters = length(t)
     state_history = Vector{Tuple{typeof(w),typeof(qeci2body)}}(undef, iters)
     τw = Vector{Vector{Float64}}(undef, iters)
@@ -118,6 +109,10 @@ function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, 
     τgravs = Vector{Vector{Float64}}(undef, iters)
     τrmds = Vector{Vector{Float64}}(undef, iters)
 
+    SC = SimulationContext(state_history, τw, τsm, τgravs, τrmds, (nadir_body, sun_body, sun_body))
+   
+    Params = SimulationParams(state_history, τw, τsm, τgravs, τrmds, mag_eci)
+
     t = epoch_to_datetime(epc)
     for i in 1:iters
         nadir_body = -rotvec(normalize(r_eci[i]), qeci2body)
@@ -125,16 +120,18 @@ function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, 
         mag_body = rotvec(mag_eci[i], qeci2body)
         qeci2orbit = Qeci2orbit[i]
         PA = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
-        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, PA, PD, qeci2body, qeci2orbit, qtarget, zeros(3), mag_body, 0.66, sensors, (nadir_body, sun_body, sun_body), w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
+        Params = SimulationParams(PD, )
+        RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
+        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, Params, SC, PA, w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
         w, qeci2body = wqeci2body
-        state_history[i] = (w, qeci2body)
-        τw[i] = rτw
-        τsm[i] = rτsm
+        SC.state_history[i] = (w, qeci2body)
+        SC.τw[i] = rτw
+        SC.τsm[i] = rτsm
         res[i] = rres
-        τgravs[i] = τgrav
-        τrmds[i] = τrmd
+        SC.τgravs[i] = τgrav
+        SC.τrmds[i] = τrmd
     end
-    return state_history, τw, τsm, τgravs, τrmds
+    return SC
 end
 
 function generate_orbit_data(jd, total_time, dt, orbital_elements)

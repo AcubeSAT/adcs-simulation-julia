@@ -42,5 +42,5 @@ export PointingMode, NadirPointing, GSPointing, SunPointing,CamPointing, Pointin
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss
-
+export SimulationParams, SimulationContext
 end
