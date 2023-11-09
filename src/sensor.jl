@@ -41,18 +41,6 @@ function in_fov(tpos, vfov, hfov)
     return θv <= vfov && θh <= hfov
 end
 
-# function available(NS::NadirSensor, target_vector, w)
-#     return w <= NS.maximum_rate && in_fov(target_vector, NS.vfov, NS.hfov)
-# end
-
-# function available(ST::StarTracker, target_vector, w)
-#     return w <= ST.maximum_rate && !in_fov(target_vector, ST.fov)
-# end
-
-# function available(SN::SunSensor, target_vector, w)
-#     return w <= SN.maximum_rate && in_fov(target_vector, SN.fov)
-# end
-
 function available(NS::NadirSensor, target_vector, w)
     return in_fov(target_vector, NS.vfov, NS.hfov)
 end
@@ -84,5 +72,5 @@ function emulate_estimation(sensors, target_vectors, w)
     end
     @assert !isempty(err_qs)
     rel_weights = abs_weights ./ sum(abs_weights)
-    return true, normalize(sum(err_qs .* rel_weights))
+    return normalize(sum(err_qs .* rel_weights))
 end

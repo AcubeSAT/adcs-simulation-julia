@@ -51,33 +51,31 @@ end
 end
 
 @concrete struct SimulationContext
-    state_history
-    τw_obs
-    τsm_obs
-    τgravs_obs
-    τrmds_obs
-    magnetic_field_body
+    state
+    τw
+    τsm
+    τgravs
+    τrmds
     magnetic_field_eci
-    target_vectors
     RW::ReactionWheel
 end
 
-
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(Mode::Type{<:PointingMode}, Params::SimulationParams, SC::SimulationContext, PA::PointingArguments, r_ecef, epc, R_ecef_to_eci)
-    w, qeci2body = state_history[end]
-    res, qerr = emulate_estimation(Params.sensors, SC.target_vectors, w)
-    qestimated = qerr * mode_quaternion(Mode, PA)
-    τ = calculate_torque(Params.PD, Params.qtarget, qestimated, w, Params.wtarget, qeci2body)
-    τw, τsm, mtrue = decompose_torque(τ, SC.magnetic_field_body, Params.msaturation)
-    compensation = deadzone_compensation(SC.RW) + saturation_compensation(SC.RW)
-    τw = clamp.(τw + compensation, -SC.RW.maxtorque, SC.RW.maxtorque)
+function control_loop(Mode::Type{<:PointingMode}, SimParams::SimulationParams, SimContext::SimulationContext, PointingArgs::PointingArguments, r_ecef, epc, R_ecef_to_eci, mag_body, target_vectors, curindex)
+    w, qeci2body = SimContext.state[curindex]
+    qerr = emulate_estimation(SimParams.sensors, target_vectors, w)
+    qestimated = qerr * mode_quaternion(Mode, PointingArgs)
+    τ = calculate_torque(SimParams.PD, SimParams.qtarget, qestimated, w, SimParams.wtarget, qeci2body)
+    τw, τsm, mtrue = decompose_torque(τ, mag_body, SimParams.msaturation)
+    compensation = deadzone_compensation(SimContext.RW) + saturation_compensation(SimContext.RW)
+    τw = clamp.(τw + compensation, -SimContext.RW.maxtorque, SimContext.RW.maxtorque)
     # rwfriction = stribeck(RW)
-    @reset SC.RW.w = rk4_rw(SC.RW.J, SC.RW.w, -τw, Params.dt)
-    τrmd = residual_dipole(Params.m, SC.magnetic_field_body)
-    G_ecef = gravity_gradient_tensor(Params.gr_model, r_ecef, epc, Params.max_degree, Params.P, Params.dP)
+    @reset SimContext.RW.w = rk4_rw(SimContext.RW.J, SimContext.RW.w, -τw, SimParams.dt)
+    τrmd = residual_dipole(SimParams.m, mag_body)
+    G_ecef = gravity_gradient_tensor(SimParams.gr_model, r_ecef, epc, SimParams.max_degree, SimParams.P, SimParams.dP)
     R_ecef_to_body = to_rotation_matrix(qeci2body) * SMatrix{3,3}(R_ecef_to_eci)
-    τgravity = gravity_torque(G_ecef, R_ecef_to_body, Params.I)
-    return rk4(Params.I, w, τw + τsm + τrmd + τgravity, qeci2body, Params.dt), τw, τsm, res, SC.RW, τgravity, τrmd
+    τgrav = gravity_torque(G_ecef, R_ecef_to_body, SimParams.I)
+    wqeci2body = rk4(SimParams.I, w, τw + τsm + τrmd + τgrav, qeci2body, SimParams.dt)
+    return wqeci2body, τw, τsm, τgrav, τrmd
 end

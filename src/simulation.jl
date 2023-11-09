@@ -98,40 +98,28 @@ function run_filter_simulation(tunable_params,
     return state_estimation_array
 end
 
-#TODO rw_w
-function rotational_dynamics(qeci2body, w, pointing_mode, pointing_args, PD, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, Params::SimulationParams, SC::SimulationContext)
-    rw_w = 94.247779 * ones(3)
+function rotational_dynamics(qeci2body, pointing_mode, pointing_args, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, SimParams::SimulationParams, SimContext::SimulationContext, curindex)
     iters = length(t)
-    state_history = Vector{Tuple{typeof(w),typeof(qeci2body)}}(undef, iters)
-    τw = Vector{Vector{Float64}}(undef, iters)
-    τsm = Vector{Vector{Float64}}(undef, iters)
-    res = Vector{Bool}(undef, iters)
-    τgravs = Vector{Vector{Float64}}(undef, iters)
-    τrmds = Vector{Vector{Float64}}(undef, iters)
-
-    SC = SimulationContext(state_history, τw, τsm, τgravs, τrmds, (nadir_body, sun_body, sun_body))
-   
-    Params = SimulationParams(state_history, τw, τsm, τgravs, τrmds, mag_eci)
-
+    println("iters from rotational_dynamics: $iters")
     t = epoch_to_datetime(epc)
     for i in 1:iters
         nadir_body = -rotvec(normalize(r_eci[i]), qeci2body)
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = rotvec(mag_eci[i], qeci2body)
+        target_vectors = (nadir_body, sun_body, sun_body)
+
         qeci2orbit = Qeci2orbit[i]
-        PA = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
-        Params = SimulationParams(PD, )
-        RW = ReactionWheel(J=I(3), w=rw_w, saturationα=1, deadzoneα=1, maxtorque=0.001)
-        wqeci2body, rτw, rτsm, rres, RW, τgrav, τrmd = control_loop(pointing_mode, Params, SC, PA, w, RW, inertia_matrix, model, r_ecef[i], t[i], max_degree, P, dP, R_ecef_to_eci[i], dt)
-        w, qeci2body = wqeci2body
-        SC.state_history[i] = (w, qeci2body)
-        SC.τw[i] = rτw
-        SC.τsm[i] = rτsm
-        res[i] = rres
-        SC.τgravs[i] = τgrav
-        SC.τrmds[i] = τrmd
+        PointingArgs = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
+        wqeci2body, rτw, rτsm, τgrav, τrmd = control_loop(pointing_mode, SimParams, SimContext, PointingArgs, r_ecef[i], t[i], R_ecef_to_eci[i], mag_body, target_vectors, curindex)
+
+        curindex += 1
+        SimContext.state[curindex] = wqeci2body
+        SimContext.τw[curindex] = rτw
+        SimContext.τsm[curindex] = rτsm
+        SimContext.τgravs[curindex] = τgrav
+        SimContext.τrmds[curindex] = τrmd
     end
-    return SC
+    return curindex
 end
 
 function generate_orbit_data(jd, total_time, dt, orbital_elements)
@@ -143,7 +131,7 @@ function generate_orbit_data(jd, total_time, dt, orbital_elements)
     rotation_eci2ecef = rECItoECEF.(epc)
     r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
     rotation_ecef2eci = rECEFtoECI.(epc)
-    year = jd_to_caldate(jd)[1] 
+    year = jd_to_caldate(jd)[1]
     r, ϕ, θ = map(field -> [getfield(item, field) for item in SphericalFromCartesian().(r_ecef)], (:r, :ϕ, :θ))
     mag_ecef = 1e-9 * ADCSSims.igrf.(year, r, ϕ, θ)
     mag_ecef = [mag_ecef[i] for i in 1:size(mag_ecef, 1)]

@@ -20,3 +20,9 @@ inclination = 98.0
 RAAN = 306.615
 argument_of_perigee = 314.19
 mean_anomaly = 99.89
+
+[disturbances]
+rmd = [-0.1235, 0.2469, -0.2273]
+
+[actuators]
+msaturation = 0.66
