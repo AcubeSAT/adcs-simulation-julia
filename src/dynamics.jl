@@ -62,7 +62,7 @@ end
 
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(Mode::Type{<:PointingMode}, SimParams::SimulationParams, SimContext::SimulationContext, PointingArgs::PointingArguments, r_ecef, epc, R_ecef_to_eci, mag_body, target_vectors, curindex)
+function control_loop(Mode, SimParams::SimulationParams, SimContext::SimulationContext, PointingArgs::PointingArguments, r_ecef, epc, R_ecef_to_eci, mag_body, target_vectors, curindex)
     w, qeci2body = SimContext.state[curindex]
     qerr = emulate_estimation(SimParams.sensors, target_vectors, w)
     qestimated = qerr * mode_quaternion(Mode, PointingArgs)

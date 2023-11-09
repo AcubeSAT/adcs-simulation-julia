@@ -1,14 +1,11 @@
 abstract type PointingMode end
 struct SunPointing <: PointingMode end
 struct NadirPointing <: PointingMode end
-struct GroundTargetPointing <: PointingMode end
-
-@concrete struct StaticPointingArgs
+@concrete struct GroundTargetPointing <: PointingMode
     target_lat
     target_lon
 end
-
-@concrete struct DynamicPointingArgs
+@concrete struct PointingArguments
     sun_body
     nadir_body
     qeci2body
@@ -16,28 +13,19 @@ end
     r_eci
 end
 
-@concrete struct PointingArguments
-    dynamic_args::DynamicPointingArgs
-    static_args::StaticPointingArgs
-end
-
 function mode_quaternion(::Type{PointingMode}, args::PointingArguments)
     error("Mode not implemented")
 end
 function mode_quaternion(::Type{SunPointing}, args::PointingArguments)
-    return align_frame_with_vector(args.dynamic_args.sun_body, args.dynamic_args.nadir_body, [0,0,-1], [0,1,0])
+    return align_frame_with_vector(args.sun_body, args.nadir_body, [0, 0, -1], [0, 1, 0])
 end
 function mode_quaternion(::Type{NadirPointing}, args::PointingArguments)
-    return args.dynamic_args.qeci2body * conj(args.dynamic_args.qeci2orbit)
+    return args.qeci2body * conj(args.qeci2orbit)
 end
-function mode_quaternion(::Type{GroundTargetPointing}, args::PointingArguments)
-    return target_quaternion(args.static_args.target_lat, args.static_args.target_lon, args.dynamic_args)
-end
+function mode_quaternion(Mode::GroundTargetPointing, args::PointingArguments)
+    lat = deg2rad(Mode.target_lat)
+    lon = deg2rad(Mode.target_lon)
 
-function target_quaternion(lat, lon, args)
-    lat = deg2rad(lat)
-    lon = deg2rad(lon)
-    # WGS-84 ellipsoidal model parameters
     a = 6378.137  # Equatorial radius in kilometers
     b = 6356.752  # Polar radius in kilometers
 
@@ -54,15 +42,17 @@ function target_quaternion(lat, lon, args)
     vec_cubesat_to_location_eci = normalize(vec_earth_to_location - args.r_eci)
     vec_cubesat_to_location_body = rotvec(vec_cubesat_to_location_eci, args.qeci2body)
     # Compute the quaternion for the desired rotation
-    return align_frame_with_vector(vec_cubesat_to_location_body, normalize(args.sun_body), [1.0,0,0], [0,0,-1.0] )
+    return align_frame_with_vector(vec_cubesat_to_location_body, normalize(args.sun_body), [1.0, 0, 0], [0, 0, -1.0])
 end
 
-function parse_pointing_mode(pm_string::String)
-    if pm_string == "NadirPointing"
+function parse_pointing_mode(row)
+    latitude = get(row, :latitude, missing)
+    longitude = get(row, :longitude, missing)
+    if row.pointing_mode == "NadirPointing"
         return NadirPointing
-    elseif pm_string == "GroundTargetPointing"
-        return GroundTargetPointing
-    elseif pm_string == "SunPointing"
+    elseif row.pointing_mode == "GroundTargetPointing"
+        return GroundTargetPointing(latitude, longitude)
+    elseif row.pointing_mode == "SunPointing"
         return SunPointing
     end
 end

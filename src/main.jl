@@ -127,13 +127,11 @@ function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationC
     for row in eachrow(df)
         start_time = cumulative_start_time
         end_time = start_time + row.duration
-        pointing_mode = ADCSSims.parse_pointing_mode(row.pointing_mode)
-        latitude = get(row, :latitude, missing)
-        longitude = get(row, :longitude, missing)
+        pointing_mode = ADCSSims.parse_pointing_mode(row)
         start_index = Int(floor(start_time / SimParams.dt)) + 1
         end_index = Int(ceil(end_time / SimParams.dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
-        curindex = ADCSSims.rotational_dynamics(pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), vectors_slice..., SimParams, SimContext, curindex)
+        curindex = ADCSSims.rotational_dynamics(pointing_mode, vectors_slice..., SimParams, SimContext, curindex)
         println("From $start_time to $end_time, mode: $pointing_mode")
         cumulative_start_time = end_time
     end

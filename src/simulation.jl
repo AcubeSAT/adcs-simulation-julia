@@ -98,7 +98,7 @@ function run_filter_simulation(tunable_params,
     return state_estimation_array
 end
 
-function rotational_dynamics(pointing_mode, pointing_args, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, SimParams::SimulationParams, SimContext::SimulationContext, curindex)
+function ADCSSims.rotational_dynamics(pointing_mode, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, SimParams::SimulationParams, SimContext::SimulationContext, curindex)
     iters = length(t)
     println("iters from rotational_dynamics: $iters")
     t = epoch_to_datetime(epc)
@@ -110,7 +110,7 @@ function rotational_dynamics(pointing_mode, pointing_args, t, epc::Vector{Epoch}
         target_vectors = (nadir_body, sun_body, sun_body)
 
         qeci2orbit = Qeci2orbit[i]
-        PointingArgs = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
+        PointingArgs = PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i])
 
         wqeci2body, rτw, rτsm, τgrav, τrmd = control_loop(pointing_mode, SimParams, SimContext, PointingArgs, r_ecef[i], t[i], R_ecef_to_eci[i], mag_body, target_vectors, curindex)
 

@@ -43,4 +43,5 @@ export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss
 export SimulationParams, SimulationContext
+export parse_pointing_mode
 end
