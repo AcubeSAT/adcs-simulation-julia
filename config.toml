@@ -6,8 +6,8 @@ wtarget = [0.0, 0.0, 0.0]
 w = [0.0, 0.0, 0.0]
 
 [controller]
-kp = 0.2
-kd = 1.0
+Kp = 0.2
+Kd = 1.0
 
 [gravity]
 model = "EGM2008"

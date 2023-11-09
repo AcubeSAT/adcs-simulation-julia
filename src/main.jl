@@ -15,8 +15,8 @@ ADCSSims.@concrete struct ConfigParams
     qtarget
     wtarget
     w
-    kp
-    kd
+    Kp
+    Kd
     grmodel
     n_max_dP
     semi_major_axis
@@ -40,8 +40,8 @@ function parseconfig()
         ADCSSims.Quaternion(config["simulation"]["qtarget"]),
         config["simulation"]["wtarget"],
         config["simulation"]["w"],
-        config["controller"]["kp"],
-        config["controller"]["kd"],
+        config["controller"]["Kp"],
+        config["controller"]["Kd"],
         Symbol(config["gravity"]["model"]),
         config["gravity"]["n_max_dP"],
         config["orbit"]["semi_major_axis"] + ADCSSims.R_EARTH,
@@ -72,7 +72,7 @@ function init()
     P = Matrix{Float64}(undef, config.n_max_dP + 1, config.n_max_dP + 1)
     dP = Matrix{Float64}(undef, config.n_max_dP + 1, config.n_max_dP + 1)
 
-    PD = PDController(0.2, 1.0)
+    PD = PDController(config.Kp, config.Kd)
     sensors = (NadirSensor(), StarTracker(), SunSensor())
 
     Ixx = 0.228128
@@ -119,12 +119,12 @@ function init()
 
     curindex = 1
 
-    return SimParams, SimContext, schedule_df, vecs, config.dt, curindex
+    return SimParams, SimContext, schedule_df, vecs, curindex
 end
 
-function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationContext, df::DataFrame, vecs, dt, curindex)
+function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationContext, df::DataFrame, vecs, curindex)
     cumulative_start_time = 0.0
-    qeci2body = one(QuaternionF64)
+    qeci2body = SimContext.state[1][2]
 
     for row in eachrow(df)
         start_time = cumulative_start_time
@@ -132,8 +132,8 @@ function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationC
         pointing_mode = ADCSSims.parse_pointing_mode(row.pointing_mode)
         latitude = get(row, :latitude, missing)
         longitude = get(row, :longitude, missing)
-        start_index = Int(floor(start_time / dt)) + 1
-        end_index = Int(ceil(end_time / dt))
+        start_index = Int(floor(start_time / SimParams.dt)) + 1
+        end_index = Int(ceil(end_time / SimParams.dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
         curindex = ADCSSims.rotational_dynamics(qeci2body, pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), vectors_slice..., SimParams, SimContext, curindex)
 
@@ -145,11 +145,12 @@ function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationC
 end
 
 function main()
-    SimParams, SimContext, schedule_df, vecs, dt, curindex = init()
-    run_pointing_modes(SimParams, SimContext, schedule_df, vecs, dt, curindex)
+    SimParams, SimContext, schedule_df, vecs, curindex = init()
+    run_pointing_modes(SimParams, SimContext, schedule_df, vecs, curindex)
 
     println("sc length: $lastindex(SimContext.state)")
     q = [s[2] for s in SimContext.state]
+    ADCSSims.plotqs(q)
     sun_eci = vecs[5]
     nadir_eci = -ADCSSims.normalize.(vecs[3])
 

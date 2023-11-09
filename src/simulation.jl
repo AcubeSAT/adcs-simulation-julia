@@ -110,6 +110,7 @@ function rotational_dynamics(qeci2body, pointing_mode, pointing_args, t, epc::Ve
 
         qeci2orbit = Qeci2orbit[i]
         PointingArgs = PointingArguments(DynamicPointingArgs(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]), pointing_args)
+
         wqeci2body, rτw, rτsm, τgrav, τrmd = control_loop(pointing_mode, SimParams, SimContext, PointingArgs, r_ecef[i], t[i], R_ecef_to_eci[i], mag_body, target_vectors, curindex)
 
         curindex += 1
