@@ -98,11 +98,12 @@ function run_filter_simulation(tunable_params,
     return state_estimation_array
 end
 
-function rotational_dynamics(qeci2body, pointing_mode, pointing_args, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, SimParams::SimulationParams, SimContext::SimulationContext, curindex)
+function rotational_dynamics(pointing_mode, pointing_args, t, epc::Vector{Epoch}, r_eci, r_ecef, sun_eci, mag_eci, Qeci2orbit, R_ecef_to_eci, SimParams::SimulationParams, SimContext::SimulationContext, curindex)
     iters = length(t)
     println("iters from rotational_dynamics: $iters")
     t = epoch_to_datetime(epc)
     for i in 1:iters
+        qeci2body = SimContext.state[curindex][2]
         nadir_body = -rotvec(normalize(r_eci[i]), qeci2body)
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = rotvec(mag_eci[i], qeci2body)

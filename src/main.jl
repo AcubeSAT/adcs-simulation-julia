@@ -95,7 +95,7 @@ function init()
         config.dt,
         config.rmd)
 
-    niter = length(vecs[1])+1
+    niter = length(vecs[1]) + 1
     state_history = Vector{Tuple{Vector{Float64},QuaternionF64}}(undef, niter)
     state_history[1] = (config.w, one(QuaternionF64))
     τw = Vector{Vector{Float64}}(undef, niter)
@@ -124,8 +124,6 @@ end
 
 function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationContext, df::DataFrame, vecs, curindex)
     cumulative_start_time = 0.0
-    qeci2body = SimContext.state[1][2]
-
     for row in eachrow(df)
         start_time = cumulative_start_time
         end_time = start_time + row.duration
@@ -135,9 +133,7 @@ function run_pointing_modes(SimParams::SimulationParams, SimContext::SimulationC
         start_index = Int(floor(start_time / SimParams.dt)) + 1
         end_index = Int(ceil(end_time / SimParams.dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
-        curindex = ADCSSims.rotational_dynamics(qeci2body, pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), vectors_slice..., SimParams, SimContext, curindex)
-
-        # w, qeci2body = SimContext.state[end_index-1]
+        curindex = ADCSSims.rotational_dynamics(pointing_mode, ADCSSims.StaticPointingArgs(latitude, longitude), vectors_slice..., SimParams, SimContext, curindex)
         println("From $start_time to $end_time, mode: $pointing_mode")
         cumulative_start_time = end_time
     end
@@ -148,7 +144,7 @@ function main()
     SimParams, SimContext, schedule_df, vecs, curindex = init()
     run_pointing_modes(SimParams, SimContext, schedule_df, vecs, curindex)
 
-    println("sc length: $lastindex(SimContext.state)")
+    println("sc length: $(lastindex(SimContext.state))")
     q = [s[2] for s in SimContext.state]
     ADCSSims.plotqs(q)
     sun_eci = vecs[5]
