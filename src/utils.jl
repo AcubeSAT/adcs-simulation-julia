@@ -1,8 +1,10 @@
 function skew_symmetric(v::AbstractArray)
     x, y, z = v
-    S = [0.0 -z y
+    S = [
+        0.0 -z y
         z 0.0 -x
-        -y x 0.0]
+        -y x 0.0
+    ]
     return S
 end
 
@@ -21,7 +23,7 @@ function split_into_parts(vec::Vector, n::Int)
     parts = Vector{typeof(vec)}(undef, n)
     start_idx = 1
 
-    for i in 1:n-1
+    for i = 1:n-1
         parts[i] = vec[start_idx:start_idx+size_per_part-1]
         start_idx += size_per_part
     end
@@ -30,7 +32,7 @@ function split_into_parts(vec::Vector, n::Int)
     return parts
 end
 
-function subvector(t::Tuple, start_idx, end_idx=:end)
+function subvector(t::Tuple, start_idx, end_idx = :end)
     end_idx = end_idx == :end ? length(first(t)) : end_idx
     return Tuple(v[start_idx:end_idx] for v in t)
 end

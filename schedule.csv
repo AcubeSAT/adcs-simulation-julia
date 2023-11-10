@@ -1,5 +1,5 @@
-duration,pointing_mode,latitude,longitude
-2602,SunPointing
-21,GroundTargetPointing,41.7614,26.2208
-479.6297,GroundTargetPointing,60.7483,-0.85803
-2602.677341952439,SunPointing
+duration,pointing_mode,x_offset,y_offset,z_offset,latitude,longitude
+2602,SunPointing,0,0,0
+21,GroundTargetPointing,0,0,0,41.7614,26.2208
+479.6297,GroundTargetPointing,0,0,0,60.7483,-0.85803
+2602.677341952439,SunPointing,0,0,0

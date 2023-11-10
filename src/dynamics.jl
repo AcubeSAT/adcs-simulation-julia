@@ -62,18 +62,44 @@ end
 
 # qtarget must be orbit2body otherwise I'll kick a hole in your fence
 # TODO: what if saturation compensation is smaller than the cubesat w from control
-function control_loop(Mode, SimParams::SimulationParams, SimContext::SimulationContext, PointingArgs::PointingArguments, r_ecef, epc, R_ecef_to_eci, mag_body, target_vectors, curindex)
+function control_loop(
+    Mode::PointingMode,
+    SimParams::SimulationParams,
+    SimContext::SimulationContext,
+    PointingArgs::PointingArguments,
+    r_ecef,
+    epc,
+    R_ecef_to_eci,
+    mag_body,
+    target_vectors,
+    curindex,
+)
     w, qeci2body = SimContext.state[curindex]
     qerr = emulate_estimation(SimParams.sensors, target_vectors, w)
     qestimated = qerr * mode_quaternion(Mode, PointingArgs)
-    τ = calculate_torque(SimParams.PD, SimParams.qtarget, qestimated, w, SimParams.wtarget, qeci2body)
+    τ = calculate_torque(
+        SimParams.PD,
+        SimParams.qtarget,
+        qestimated,
+        w,
+        SimParams.wtarget,
+        qeci2body,
+    )
     τw, τsm, mtrue = decompose_torque(τ, mag_body, SimParams.msaturation)
-    compensation = deadzone_compensation(SimContext.RW) + saturation_compensation(SimContext.RW)
+    compensation =
+        deadzone_compensation(SimContext.RW) + saturation_compensation(SimContext.RW)
     τw = clamp.(τw + compensation, -SimContext.RW.maxtorque, SimContext.RW.maxtorque)
     # rwfriction = stribeck(RW)
     @reset SimContext.RW.w = rk4_rw(SimContext.RW.J, SimContext.RW.w, -τw, SimParams.dt)
     τrmd = residual_dipole(SimParams.m, mag_body)
-    G_ecef = gravity_gradient_tensor(SimParams.gr_model, r_ecef, epc, SimParams.max_degree, SimParams.P, SimParams.dP)
+    G_ecef = gravity_gradient_tensor(
+        SimParams.gr_model,
+        r_ecef,
+        epc,
+        SimParams.max_degree,
+        SimParams.P,
+        SimParams.dP,
+    )
     R_ecef_to_body = to_rotation_matrix(qeci2body) * SMatrix{3,3}(R_ecef_to_eci)
     τgrav = gravity_torque(G_ecef, R_ecef_to_body, SimParams.I)
     wqeci2body = rk4(SimParams.I, w, τw + τsm + τrmd + τgrav, qeci2body, SimParams.dt)

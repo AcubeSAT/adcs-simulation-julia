@@ -4,6 +4,7 @@ dt = 0.1
 qtarget = [1.0, 0.0, 0.0, 0.0]  # Quaternion as a list of coefficients
 wtarget = [0.0, 0.0, 0.0]
 w = [0.0, 0.0, 0.0]
+inertia_matrix = [[0.228128, 0.000147, 0.024513], [0.000147, 0.248027, -0.000086], [0.024513, -0.000086, 0.091558]]
 
 [controller]
 Kp = 0.2

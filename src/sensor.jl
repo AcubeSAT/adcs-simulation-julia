@@ -6,7 +6,7 @@ abstract type AbstractSensor end
     maximum_rate = 0.24434609527920614
     σ_cross_sight = 0.005817764173314432
     σ_roll = 0.005817764173314432
-    q_body_sensor = Quaternion(sqrt(2)/2, 0.0, sqrt(2)/2, 0.0)
+    q_body_sensor = Quaternion(sqrt(2) / 2, 0.0, sqrt(2) / 2, 0.0)
     abs_weight = 0.333333
 end
 
@@ -15,7 +15,7 @@ end
     maximum_rate = 0.005235987755982988
     σ_cross_sight = 0.00011635528346628864
     σ_roll = 0.00034906585039886593
-    q_body_sensor = Quaternion(sqrt(2)/2, 0.0, sqrt(2)/2, 0.0)
+    q_body_sensor = Quaternion(sqrt(2) / 2, 0.0, sqrt(2) / 2, 0.0)
     abs_weight = 227.272727
 end
 
@@ -24,7 +24,7 @@ end
     maximum_rate = 1.2217304763960306
     σ_cross_sight = 0.0017453292519943296
     σ_roll = 0.0017453292519943296
-    q_body_sensor = QuaternionF64(1,0,0,0)
+    q_body_sensor = QuaternionF64(1, 0, 0, 0)
     abs_weight = 8.333333
 end
 
