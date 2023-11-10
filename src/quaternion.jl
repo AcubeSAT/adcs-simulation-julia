@@ -228,6 +228,7 @@ function to_euler_angles(q::Quaternion)
     @SVector [a1 + a2, a0, a1 - a2]
 end
 
+"Following the ZYX convention"
 function euler_to_quaternion(roll::Real, pitch::Real, yaw::Real)
     half_roll = roll / 2
     half_pitch = pitch / 2
