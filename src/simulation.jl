@@ -1,3 +1,28 @@
+@concrete struct SimulationParams
+    PD
+    qtarget
+    wtarget
+    gr_model
+    max_degree
+    P
+    dP
+    msaturation
+    sensors
+    I
+    dt
+    m
+end
+
+@concrete struct SimulationContext
+    state
+    τw
+    τsm
+    τgravs
+    τrmds
+    magnetic_field_eci
+    RW
+end
+
 function calculate_orbit(jd, total_time, dt, orbital_elements)
     epc0 = Epoch(jd_to_caldate(jd)...)
     # oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
@@ -10,7 +35,7 @@ function calculate_orbit(jd, total_time, dt, orbital_elements)
     return t, epc, eci
 end
 
-function rotational_dynamics(
+function simulate_attitude(
     pointing_mode::PointingMode,
     t,
     epc::Vector{Epoch},
@@ -25,10 +50,11 @@ function rotational_dynamics(
     curindex,
 )
     iters = length(t)
-    println("iters from rotational_dynamics: $iters")
+    println("iters from simulate_attitude: $iters")
     t = epoch_to_datetime(epc)
     for i = 1:iters
         qeci2body = SimContext.state[curindex][2]
+        w = SimContext.state[curindex][1]
         nadir_body = -rotvec(normalize(r_eci[i]), qeci2body)
         sun_body = Vector(rotvec(sun_eci[i], qeci2body))
         mag_body = rotvec(mag_eci[i], qeci2body)
@@ -38,23 +64,36 @@ function rotational_dynamics(
         PointingArgs =
             PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i])
 
-        wqeci2body, rτw, rτsm, τgrav, τrmd = control_loop(
+        τw, τsm = control_loop(
             pointing_mode,
             SimParams,
             SimContext,
             PointingArgs,
-            r_ecef[i],
-            t[i],
-            R_ecef_to_eci[i],
             mag_body,
             target_vectors,
             curindex,
         )
 
+        # Disturbances
+        τrmd = residual_dipole(SimParams.m, mag_body)
+        
+        G_ecef = gravity_gradient_tensor(
+            SimParams.gr_model,
+            r_ecef[i],
+            t[i],
+            SimParams.max_degree,
+            SimParams.P,
+            SimParams.dP,
+        )
+        R_ecef_to_body = to_rotation_matrix(qeci2body) * SMatrix{3,3}(R_ecef_to_eci[i])
+        τgrav = gravity_torque(G_ecef, R_ecef_to_body, SimParams.I)
+
+        wqeci2body = rk4(SimParams.I, w, τw + τsm + τrmd + τgrav, qeci2body, SimParams.dt)
+
         curindex += 1
         SimContext.state[curindex] = wqeci2body
-        SimContext.τw[curindex] = rτw
-        SimContext.τsm[curindex] = rτsm
+        SimContext.τw[curindex] = τw
+        SimContext.τsm[curindex] = τsm
         SimContext.τgravs[curindex] = τgrav
         SimContext.τrmds[curindex] = τrmd
     end

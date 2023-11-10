@@ -1,6 +1,6 @@
 @concrete struct PDController
-    Kp::Any
-    Kd::Any
+    Kp
+    Kd
 end
 
 function calculate_torque(PD::PDController, qtarget, qestimated, w, wtarget, qeci2body)
@@ -26,4 +26,35 @@ function decompose_torque(τ, b, msaturation)
     τsm = ksm * cross(b, mprime)
     τw = τ - τsm
     return τw, τsm, mtrue
+end
+
+# TODO: what if saturation compensation is smaller than the cubesat w from control
+# TODO: reaction wheel not taken into account for anything
+function control_loop(
+    Mode::PointingMode,
+    SimParams::SimulationParams,
+    SimContext::SimulationContext,
+    PointingArgs::PointingArguments,
+    mag_body,
+    target_vectors,
+    curindex,
+)
+    w, qeci2body = SimContext.state[curindex]
+    qerr = emulate_estimation(SimParams.sensors, target_vectors, w)
+    qestimated = qerr * mode_quaternion(Mode, PointingArgs)
+    τ = calculate_torque(
+        SimParams.PD,
+        SimParams.qtarget,
+        qestimated,
+        w,
+        SimParams.wtarget,
+        qeci2body,
+    )
+    τw, τsm, mtrue = decompose_torque(τ, mag_body, SimParams.msaturation)
+    compensation =
+        deadzone_compensation(SimContext.RW) + saturation_compensation(SimContext.RW)
+    τw = clamp.(τw + compensation, -SimContext.RW.maxtorque, SimContext.RW.maxtorque)
+    # rwfriction = stribeck(RW)
+    # @reset SimContext.RW.w = rk4_rw(SimContext.RW.J, SimContext.RW.w, -τw, SimParams.dt)
+    return τw, τsm
 end

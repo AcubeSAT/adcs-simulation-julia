@@ -22,15 +22,15 @@ using Statistics
 
 include("quaternion.jl")
 include("pointing_modes.jl")
+include("simulation.jl")
+include("control.jl")
 include("disturbances.jl")
 include("sensor.jl")
 include("reaction_wheel.jl")
-include("control.jl")
 include("dynamics.jl")
 include("losses.jl")
 include("utils.jl")
 include("parameters.jl")
-include("simulation.jl")
 include("plots.jl")
 include("frames.jl")
 
@@ -44,15 +44,13 @@ export Quaternion,
     to_euler_angles,
     align_frame_with_vector
 export NadirSensor,
-    GroundTargetPointing,
     StarTracker,
     SunSensor,
     in_fov,
     available,
     qerr,
     emulate_estimation
-export PointingMode,
-    NadirPointing, GSPointing, SunPointing, CamPointing, PointingArguments, mode_quaternion
+export PointingMode, NadirPointing, GroundTargetPointing, SunPointing, PointingArguments, mode_quaternion
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss

@@ -144,7 +144,7 @@ function run_pointing_modes(
         start_index = Int(floor(start_time / SimParams.dt)) + 1
         end_index = Int(ceil(end_time / SimParams.dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
-        curindex = ADCSSims.rotational_dynamics(
+        curindex = ADCSSims.simulate_attitude(
             pointing_mode,
             vectors_slice...,
             SimParams,
