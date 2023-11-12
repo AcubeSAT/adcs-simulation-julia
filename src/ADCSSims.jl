@@ -27,6 +27,8 @@ include("mekf.jl")
 include("simulation.jl")
 include("plots.jl")
 
+include("disturbances.jl")
+
 export Quaternion, QuaternionF16, QuaternionF32, QuaternionF64, rotvec, from_rotation_matrix
 export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, emulate_estimation
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
