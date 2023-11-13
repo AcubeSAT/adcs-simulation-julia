@@ -15,8 +15,9 @@ Quaternion(v::AbstractVector{T}) where {T<:Real} = Quaternion{T}(v)
 # Explicitly state type, use SVector promote_rules for mixed types
 Quaternion{T}(w, x, y, z) where {T<:Real} = Quaternion(SVector{4,T}(w, x, y, z))
 Quaternion{T}(x, y, z) where {T<:Real} = Quaternion(SVector{4,T}(zero(x), x, y, z))
-Quaternion{T}(w::Real) where {T<:Real} =
-    Quaternion(SVector{4,T}(w, zero(w), zero(w), zero(w)))
+function Quaternion{T}(w::Real) where {T<:Real}
+    return Quaternion(SVector{4,T}(w, zero(w), zero(w), zero(w)))
+end
 # Rely on type inference, use SVector promote_rules for mixed types
 function Quaternion(w, x, y, z)
     v = SVector{4}(w, x, y, z)
@@ -46,19 +47,22 @@ end
 # Type-preserving copy constructor
 Quaternion{T}(Q::Quaternion{T}) where {T<:Real} = Quaternion(Q.coeffs...)
 # Type conversion copy constructor
-Quaternion{T}(Q::Quaternion{S}) where {T<:Real,S<:Real} =
-    Quaternion(SVector{4,T}(Q.coeffs...))
+function Quaternion{T}(Q::Quaternion{S}) where {T<:Real,S<:Real}
+    return Quaternion(SVector{4,T}(Q.coeffs...))
+end
 
 const QuaternionF64 = Quaternion{Float64}
 const QuaternionF32 = Quaternion{Float32}
 const QuaternionF16 = Quaternion{Float16}
 
-Base.zero(::Type{Quaternion{T}}) where {T<:Real} =
-    Quaternion{T}(zero(T), zero(T), zero(T), zero(T))
+function Base.zero(::Type{Quaternion{T}}) where {T<:Real}
+    return Quaternion{T}(zero(T), zero(T), zero(T), zero(T))
+end
 Base.zero(Q::Quaternion{T}) where {T<:Real} = Base.zero(typeof(Q))
 
-Base.one(::Type{Quaternion{T}}) where {T<:Real} =
-    Quaternion{T}(one(T), zero(T), zero(T), zero(T))
+function Base.one(::Type{Quaternion{T}}) where {T<:Real}
+    return Quaternion{T}(one(T), zero(T), zero(T), zero(T))
+end
 Base.one(Q::Quaternion{T}) where {T<:Real} = Base.one(typeof(Q))
 
 # Given a numeric type, return a Quaternion (not instance) specialized on T
@@ -67,10 +71,14 @@ Base.one(Q::Quaternion{T}) where {T<:Real} = Base.one(typeof(Q))
 (::Type{Quaternion})(::Type{Quaternion{T}}) where {T<:Real} = Quaternion{T}
 
 Base.eltype(::Type{Quaternion{T}}) where {T<:Real} = T
-Base.promote_rule(::Type{Quaternion{T}}, ::Type{S}) where {T<:Real,S<:Real} =
-    Quaternion{promote_type(T, S)}
-Base.promote_rule(::Type{Quaternion{T}}, ::Type{Quaternion{S}}) where {T<:Real,S<:Real} =
-    Quaternion{promote_type(T, S)}
+function Base.promote_rule(::Type{Quaternion{T}}, ::Type{S}) where {T<:Real,S<:Real}
+    return Quaternion{promote_type(T, S)}
+end
+function Base.promote_rule(
+    ::Type{Quaternion{T}}, ::Type{Quaternion{S}}
+) where {T<:Real,S<:Real}
+    return Quaternion{promote_type(T, S)}
+end
 
 @inline function Base.getindex(Q::Quaternion, i::Integer)
     @boundscheck checkbounds(Q.coeffs, i)
@@ -121,8 +129,9 @@ Base.:*(r::Real, Q::Quaternion) = Quaternion(Q.coeffs * r)
 Base.:/(Q::Quaternion, r::Real) = Quaternion(Q.coeffs / r)
 
 Base.isreal(Q::Quaternion) = iszero(Q[2]) && iszero(Q[3]) && iszero(Q[4])
-Base.isfinite(Q::Quaternion) =
-    isfinite(Q[1]) && isfinite(Q[2]) && isfinite(Q[3]) && isfinite(Q[4])
+function Base.isfinite(Q::Quaternion)
+    return isfinite(Q[1]) && isfinite(Q[2]) && isfinite(Q[3]) && isfinite(Q[4])
+end
 Base.iszero(Q::Quaternion) = iszero(Q[1]) && iszero(Q[2]) && iszero(Q[3]) && iszero(Q[4])
 Base.isone(Q::Quaternion) = isone(Q[1]) && iszero(Q[2]) && iszero(Q[3]) && iszero(Q[4])
 Base.isnan(Q::Quaternion) = isnan(Q[1]) || isnan(Q[2]) || isnan(Q[3]) || isnan(Q[4])
@@ -141,10 +150,12 @@ end
 
 # From https://github.com/moble/Quaternionic.jl
 dominant_eigenvector(M::Symmetric{T,SMatrix{4,4,T,16}}) where {T} = eigen(M).vectors[:, 4]
-dominant_eigenvector(M::Symmetric{Float64,SMatrix{4,4,Float64,16}}) =
-    eigen(M, 4:4).vectors[:, 1]
-dominant_eigenvector(M::Symmetric{Float32,SMatrix{4,4,Float32,16}}) =
-    eigen(M, 4:4).vectors[:, 1]
+function dominant_eigenvector(M::Symmetric{Float64,SMatrix{4,4,Float64,16}})
+    return eigen(M, 4:4).vectors[:, 1]
+end
+function dominant_eigenvector(M::Symmetric{Float32,SMatrix{4,4,Float32,16}})
+    return eigen(M, 4:4).vectors[:, 1]
+end
 
 """
     from_rotation_matrix(A)
@@ -180,9 +191,9 @@ function from_rotation_matrix(A::AbstractMatrix)
         # (3, in this case) won't change that.
         K = Symmetric(
             @SMatrix[
-                A[1, 1]-A[2, 2]-A[3, 3] A[2, 1]+A[1, 2] A[3, 1]+A[1, 3] A[2, 3]-A[3, 2]
-                0 A[2, 2]-A[1, 1]-A[3, 3] A[3, 2]+A[2, 3] A[3, 1]-A[1, 3]
-                0 0 A[3, 3]-A[1, 1]-A[2, 2] A[1, 2]-A[2, 1]
+                A[1, 1] - A[2, 2]-A[3, 3] A[2, 1]+A[1, 2] A[3, 1]+A[1, 3] A[2, 3]-A[3, 2]
+                0 A[2, 2] - A[1, 1]-A[3, 3] A[3, 2]+A[2, 3] A[3, 1]-A[1, 3]
+                0 0 A[3, 3] - A[1, 1]-A[2, 2] A[1, 2]-A[2, 1]
                 0 0 0 A[1, 1]+A[2, 2]+A[3, 3]
             ]
         )
@@ -193,7 +204,7 @@ function from_rotation_matrix(A::AbstractMatrix)
         # Convert it into a quaternion
         R = Quaternion(de[4], -de[1], -de[2], -de[3])
     end
-    R
+    return R
 end
 
 """
@@ -215,9 +226,9 @@ This function returns that matrix.
 function to_rotation_matrix(q::Quaternion)
     n = inv(abs2(q))
     @SMatrix [
-        1-2*(q[3]^2+q[4]^2)*n 2*(q[2]*q[3]-q[4]*q[1])*n 2*(q[2]*q[4]+q[3]*q[1])*n
-        2*(q[2]*q[3]+q[4]*q[1])*n 1-2*(q[2]^2+q[4]^2)*n 2*(q[3]*q[4]-q[2]*q[1])*n
-        2*(q[2]*q[4]-q[3]*q[1])*n 2*(q[3]*q[4]+q[2]*q[1])*n 1-2*(q[2]^2+q[3]^2)*n
+        1-2 * (q[3]^2 + q[4]^2) * n 2*(q[2] * q[3]-q[4] * q[1])*n 2*(q[2] * q[4]+q[3] * q[1])*n
+        2*(q[2] * q[3]+q[4] * q[1])*n 1-2 * (q[2]^2 + q[4]^2) * n 2*(q[3] * q[4]-q[2] * q[1])*n
+        2*(q[2] * q[4]-q[3] * q[1])*n 2*(q[3] * q[4]+q[2] * q[1])*n 1-2 * (q[2]^2 + q[3]^2) * n
     ]
 end
 
@@ -243,8 +254,8 @@ function euler_to_quaternion(roll::Real, pitch::Real, yaw::Real)
     y = cr * sp * cy + sr * cp * sy
     z = cr * cp * sy - sr * sp * cy
 
-    Quaternion(w, x, y, z)
-end    
+    return Quaternion(w, x, y, z)
+end
 
 function Base.show(io::IO, Q::Quaternion{T}) where {T}
     print(io, "{")
@@ -257,5 +268,5 @@ function Base.show(io::IO, Q::Quaternion{T}) where {T}
     print(io, ", q3: ")
     show(io, Q[3])
     print(io, ", q4: ")
-    show(io, Q[4])
+    return show(io, Q[4])
 end

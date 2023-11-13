@@ -43,12 +43,7 @@ function control_loop(
     qerr = emulate_estimation(SimParams.sensors, target_vectors, w)
     qestimated = qerr * mode_quaternion(Mode, PointingArgs)
     τ = calculate_torque(
-        SimParams.PD,
-        SimParams.qtarget,
-        qestimated,
-        w,
-        SimParams.wtarget,
-        qeci2body,
+        SimParams.PD, SimParams.qtarget, qestimated, w, SimParams.wtarget, qeci2body
     )
     τw, τsm, mtrue = decompose_torque(τ, mag_body, SimParams.msaturation)
     compensation =

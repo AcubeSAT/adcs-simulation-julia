@@ -8,9 +8,9 @@ function epoch_to_datetime(epcs)
     return [DateTime(x([caldate(epc)...])...) for epc in epcs]
 end
 
-function gravity_gradient_tensor(model, p, t, max_degree, P, dP; δ = 1e-3)
+function gravity_gradient_tensor(model, p, t, max_degree, P, dP; δ=1e-3)
     T = @MMatrix zeros(3, 3)
-    for i = 1:3
+    for i in 1:3
         g_forward = CartesianFromSpherical()(
             Spherical(
                 GravityModels.gravitational_field_derivative(
@@ -20,10 +20,10 @@ function gravity_gradient_tensor(model, p, t, max_degree, P, dP; δ = 1e-3)
                         p[2] + (i == 2 ? δ : 0),
                         p[3] + (i == 3 ? δ : 0),
                     ],
-                    t,
-                    max_degree = max_degree,
-                    P = P,
-                    dP = dP,
+                    t;
+                    max_degree=max_degree,
+                    P=P,
+                    dP=dP,
                 )...,
             ),
         )
@@ -36,10 +36,10 @@ function gravity_gradient_tensor(model, p, t, max_degree, P, dP; δ = 1e-3)
                         p[2] - (i == 2 ? δ : 0),
                         p[3] - (i == 3 ? δ : 0),
                     ],
-                    t,
-                    max_degree = max_degree,
-                    P = P,
-                    dP = dP,
+                    t;
+                    max_degree=max_degree,
+                    P=P,
+                    dP=dP,
                 )...,
             ),
         )

@@ -1,6 +1,6 @@
 struct Optional{T}
     data::Union{Nothing,T}
-    Optional{T}(data::Union{Nothing,T} = nothing) where {T} = new{T}(data)
+    Optional{T}(data::Union{Nothing,T}=nothing) where {T} = new{T}(data)
 end
 
 Base.getindex(s::Optional) = s.data

@@ -26,10 +26,10 @@ end
 function calculate_orbit(jd, total_time, dt, orbital_elements)
     epc0 = Epoch(jd_to_caldate(jd)...)
     # oe0 = [R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
-    eci0 = sOSCtoCART(orbital_elements, use_degrees = true)
+    eci0 = sOSCtoCART(orbital_elements; use_degrees=true)
     # T = orbit_period(oe0[1])
     epcf = epc0 + total_time
-    orb = EarthInertialState(epc0, eci0, dt = dt, mass = 11.41, relativity = false)
+    orb = EarthInertialState(epc0, eci0; dt=dt, mass=11.41, relativity=false)
 
     t, epc, eci = sim!(orb, epcf)
     return t, epc, eci
@@ -52,7 +52,7 @@ function simulate_attitude(
     iters = length(t)
     println("iters from simulate_attitude: $iters")
     t = epoch_to_datetime(epc)
-    for i = 1:iters
+    for i in 1:iters
         qeci2body = SimContext.state[curindex][2]
         w = SimContext.state[curindex][1]
         nadir_body = -rotvec(normalize(r_eci[i]), qeci2body)
@@ -61,8 +61,9 @@ function simulate_attitude(
         target_vectors = (nadir_body, sun_body, sun_body)
 
         qeci2orbit = Qeci2orbit[i]
-        PointingArgs =
-            PointingArguments(sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i])
+        PointingArgs = PointingArguments(
+            sun_body, nadir_body, qeci2body, qeci2orbit, r_eci[i]
+        )
 
         τw, τsm = control_loop(
             pointing_mode,
@@ -76,7 +77,7 @@ function simulate_attitude(
 
         # Disturbances
         τrmd = residual_dipole(SimParams.m, mag_body)
-        
+
         G_ecef = gravity_gradient_tensor(
             SimParams.gr_model,
             r_ecef[i],
@@ -107,7 +108,7 @@ function generate_orbit_data(jd, total_time, dt, orbital_elements)
     v_eci = eci[4:6, :]
     v_eci = [vec(col) for col in eachcol(v_eci)]
     rotation_eci2ecef = rECItoECEF.(epc)
-    r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i = 1:size(rotation_eci2ecef, 1)]
+    r_ecef = [rotation_eci2ecef[i] * r_eci[i] for i in 1:size(rotation_eci2ecef, 1)]
     rotation_ecef2eci = rECEFtoECI.(epc)
     year = jd_to_caldate(jd)[1]
     r, ϕ, θ = map(
@@ -115,7 +116,7 @@ function generate_orbit_data(jd, total_time, dt, orbital_elements)
         (:r, :ϕ, :θ),
     )
     mag_ecef = 1e-9 * ADCSSims.igrf.(year, r, ϕ, θ)
-    mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i = 1:size(rotation_ecef2eci, 1)]
+    mag_eci = [rotation_ecef2eci[i] * mag_ecef[i] for i in 1:size(rotation_ecef2eci, 1)]
     sun_eci = sun_position.(epc)
     sun_eci = normalize.(sun_eci)
     T = eci2orbit.(r_eci, v_eci)

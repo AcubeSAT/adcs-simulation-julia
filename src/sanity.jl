@@ -10,26 +10,26 @@ function plotwq(state)
     v2 = [s[1][2] for s in state]
     v3 = [s[1][3] for s in state]
 
-    p1 = plot(q1, label="q1", title="Quaternion q1")
-    p2 = plot(q2, label="q2", title="Quaternion q2")
-    p3 = plot(q3, label="q3", title="Quaternion q3")
-    p4 = plot(q4, label="q4", title="Quaternion q4")
-    p5 = plot(v1, label="v1", title="Vector v1")
-    p6 = plot(v2, label="v2", title="Vector v2")
-    p7 = plot(v3, label="v3", title="Vector v3")
+    p1 = plot(q1; label="q1", title="Quaternion q1")
+    p2 = plot(q2; label="q2", title="Quaternion q2")
+    p3 = plot(q3; label="q3", title="Quaternion q3")
+    p4 = plot(q4; label="q4", title="Quaternion q4")
+    p5 = plot(v1; label="v1", title="Vector v1")
+    p6 = plot(v2; label="v2", title="Vector v2")
+    p7 = plot(v3; label="v3", title="Vector v3")
 
-    plt = plot(p1, p2, p3, p4, p5, p6, p7, layout=(3,3), legend=false)
+    plt = plot(p1, p2, p3, p4, p5, p6, p7; layout=(3, 3), legend=false)
 
     display(plt)
     return nothing
 end
 
 function plotτs(state)
-    p5 = plot(state[1, :], label="v1", title="Vector v1")
-    p6 = plot(state[2, :], label="v2", title="Vector v2")
-    p7 = plot(state[3, :], label="v3", title="Vector v3")
+    p5 = plot(state[1, :]; label="v1", title="Vector v1")
+    p6 = plot(state[2, :]; label="v2", title="Vector v2")
+    p7 = plot(state[3, :]; label="v3", title="Vector v3")
 
-    plt = plot(p5, p6, p7, layout=(1,3), legend=false)
+    plt = plot(p5, p6, p7; layout=(1, 3), legend=false)
 
     display(plt)
     return nothing
@@ -68,13 +68,13 @@ end
 
 function control(iters, dt)
     q = Quaternion(0.1531, 0.6853, 0.6953, 0.1531)
-    qtarget = normalize(QuaternionF64(1,-2,3,6))
+    qtarget = normalize(QuaternionF64(1, -2, 3, 6))
     qestimated = normalize(Quaternion(q.coeffs .+ 1e-3))
     w = @MVector [0.53, 0.53, 0.053]
     wtarget = zeros(3)
-    Inertia = diagm([10000,9000,12000])
-    τs = Vector{MVector{3, Float64}}(undef, iters)
-    res = Vector{Tuple{typeof(w), typeof(q)}}(undef, iters)
+    Inertia = diagm([10000, 9000, 12000])
+    τs = Vector{MVector{3,Float64}}(undef, iters)
+    res = Vector{Tuple{typeof(w),typeof(q)}}(undef, iters)
     PD = PDController(50, 500)
     for i in 1:iters
         τ = calculate_torque(PD, qtarget, qestimated, w, wtarget)

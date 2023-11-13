@@ -19,7 +19,7 @@ end
 end
 
 function mode_quaternion(Mode::PointingMode, args::PointingArguments)
-    error("Mode not implemented")
+    return error("Mode not implemented")
 end
 function mode_quaternion(Mode::SunPointing, args::PointingArguments)
     return Mode.q_offset *
@@ -49,10 +49,7 @@ function mode_quaternion(Mode::GroundTargetPointing, args::PointingArguments)
     vec_cubesat_to_location_body = rotvec(vec_cubesat_to_location_eci, args.qeci2body)
     # Compute the quaternion for the desired rotation
     return Mode.q_offset * align_frame_with_vector(
-        vec_cubesat_to_location_body,
-        normalize(args.sun_body),
-        [1.0, 0, 0],
-        [0, 0, -1.0],
+        vec_cubesat_to_location_body, normalize(args.sun_body), [1.0, 0, 0], [0, 0, -1.0]
     )
 end
 
@@ -61,17 +58,23 @@ function parse_pointing_mode(row)
     longitude = get(row, :longitude, missing)
     if row.pointing_mode == "NadirPointing"
         return NadirPointing(
-            euler_to_quaternion(deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)),
+            euler_to_quaternion(
+                deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)
+            ),
         )
     elseif row.pointing_mode == "GroundTargetPointing"
         return GroundTargetPointing(
             latitude,
             longitude,
-            euler_to_quaternion(deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)),
+            euler_to_quaternion(
+                deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)
+            ),
         )
     elseif row.pointing_mode == "SunPointing"
         return SunPointing(
-            euler_to_quaternion(deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)),
+            euler_to_quaternion(
+                deg2rad(row.x_offset), deg2rad(row.y_offset), deg2rad(row.z_offset)
+            ),
         )
     end
 end

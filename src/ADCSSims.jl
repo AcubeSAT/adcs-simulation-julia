@@ -43,14 +43,9 @@ export Quaternion,
     to_rotation_matrix,
     to_euler_angles,
     align_frame_with_vector
-export NadirSensor,
-    StarTracker,
-    SunSensor,
-    in_fov,
-    available,
-    qerr,
-    emulate_estimation
-export PointingMode, NadirPointing, GroundTargetPointing, SunPointing, PointingArguments, mode_quaternion
+export NadirSensor, StarTracker, SunSensor, in_fov, available, qerr, emulate_estimation
+export PointingMode,
+    NadirPointing, GroundTargetPointing, SunPointing, PointingArguments, mode_quaternion
 export ReactionWheel, stribeck, deadzone_compensation, saturation_compensation
 export PDController, calculate_torque, decompose_torque
 export mse, qloss

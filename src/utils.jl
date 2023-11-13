@@ -23,8 +23,8 @@ function split_into_parts(vec::Vector, n::Int)
     parts = Vector{typeof(vec)}(undef, n)
     start_idx = 1
 
-    for i = 1:n-1
-        parts[i] = vec[start_idx:start_idx+size_per_part-1]
+    for i in 1:(n - 1)
+        parts[i] = vec[start_idx:(start_idx + size_per_part - 1)]
         start_idx += size_per_part
     end
     parts[n] = vec[start_idx:end] # last part takes the remainder
@@ -32,7 +32,7 @@ function split_into_parts(vec::Vector, n::Int)
     return parts
 end
 
-function subvector(t::Tuple, start_idx, end_idx = :end)
+function subvector(t::Tuple, start_idx, end_idx=:end)
     end_idx = end_idx == :end ? length(first(t)) : end_idx
     return Tuple(v[start_idx:end_idx] for v in t)
 end

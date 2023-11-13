@@ -32,11 +32,7 @@ end
 
 function deadzone_compensation(RW::ReactionWheel)
     return deadzone_compensation.(
-        RW.w,
-        RW.wdeadzone,
-        RW.wdeadzonemid,
-        RW.deadzoneα,
-        RW.maxtorque,
+        RW.w, RW.wdeadzone, RW.wdeadzonemid, RW.deadzoneα, RW.maxtorque
     )
 end
 

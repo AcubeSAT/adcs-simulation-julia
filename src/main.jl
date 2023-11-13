@@ -6,7 +6,7 @@ using CSV
 using TOML
 
 function get_total_time(df::DataFrame)
-    sum(skipmissing(df[!, "duration"]))
+    return sum(skipmissing(df[!, "duration"]))
 end
 
 ADCSSims.@concrete struct ConfigParams
@@ -34,10 +34,7 @@ end
 # orbital_elements = [ADCSSims.R_EARTH + 522863.7, 0.01, 98.0, 306.615, 314.19, 99.89]
 function parseconfig()
     config = TOML.parsefile("config.toml")
-    schedule_df =
-        CSV.File(
-            "schedule.csv",
-        ) |> DataFrame
+    schedule_df = DataFrame(CSV.File("schedule.csv"))
 
     return schedule_df,
     ConfigParams(
@@ -114,12 +111,8 @@ function init()
     τgrav = Vector{Vector{Float64}}(undef, niter)
     τrmd = Vector{Vector{Float64}}(undef, niter)
 
-    RW = ReactionWheel(
-        J = ADCSSims.I(3),
-        w = 94.247779 * ones(3),
-        saturationα = 1,
-        deadzoneα = 1,
-        maxtorque = 0.001,
+    RW = ReactionWheel(;
+        J=ADCSSims.I(3), w=94.247779 * ones(3), saturationα=1, deadzoneα=1, maxtorque=0.001
     )
 
     SimContext = SimulationContext(state_history, τw, τsm, τgrav, τrmd, vecs[6], RW)
@@ -145,11 +138,7 @@ function run_pointing_modes(
         end_index = Int(ceil(end_time / SimParams.dt))
         vectors_slice = ADCSSims.subvector(vecs, start_index, end_index)
         curindex = ADCSSims.simulate_attitude(
-            pointing_mode,
-            vectors_slice...,
-            SimParams,
-            SimContext,
-            curindex,
+            pointing_mode, vectors_slice..., SimParams, SimContext, curindex
         )
         println("From $start_time to $end_time, mode: $pointing_mode")
         cumulative_start_time = end_time
@@ -169,11 +158,8 @@ function main()
 
     qbody2sun = [
         align_frame_with_vector(
-            rotvec(sun_eci[i], q[i]),
-            rotvec(nadir_eci[i], q[i]),
-            [0, 0, -1],
-            [0, 1, 0],
-        ) for i = 1:length(q)-1
+            rotvec(sun_eci[i], q[i]), rotvec(nadir_eci[i], q[i]), [0, 0, -1], [0, 1, 0]
+        ) for i in 1:(length(q) - 1)
     ]
     ADCSSims.plotqs(qbody2sun)
 
@@ -185,8 +171,9 @@ function main()
     coeff3 = [q[3] for q in qbody2sun[1:n:end]]
     coeff4 = [q[4] for q in qbody2sun[1:n:end]]
 
-    DataFrame(JD = jd_values, q1 = coeff1, q2 = coeff2, q3 = coeff3, q4 = coeff4) |>
-    CSV.write("data.csv")
+    return CSV.write("data.csv")(
+        DataFrame(; JD=jd_values, q1=coeff1, q2=coeff2, q3=coeff3, q4=coeff4)
+    )
 end
 
 # 5705.307041952439 total period
