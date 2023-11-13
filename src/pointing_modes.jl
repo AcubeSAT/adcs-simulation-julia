@@ -6,16 +6,16 @@ struct NadirPointing <: PointingMode
     q_offset::Quaternion
 end
 @concrete struct GroundTargetPointing <: PointingMode
-    target_lat::Any
-    target_lon::Any
+    target_lat
+    target_lon
     q_offset::Quaternion
 end
 @concrete struct PointingArguments
-    sun_body::Any
-    nadir_body::Any
-    qeci2body::Any
-    qeci2orbit::Any
-    r_eci::Any
+    sun_body
+    nadir_body
+    qeci2body
+    qeci2orbit
+    r_eci
 end
 
 function mode_quaternion(Mode::PointingMode, args::PointingArguments)
