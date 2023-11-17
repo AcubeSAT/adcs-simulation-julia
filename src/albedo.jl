@@ -49,18 +49,18 @@ function calculateAlbedo(AP::AlbedoParameters)
 
     albedo = zeros(AP.TOMSrows, AP.TOMScolumns)
 
-    for p in 1 : AP.TOMSrows
-        for k in 1 : AP.TOMScolumns
+    for i in 1 : AP.TOMSrows
+        for j in 1 : AP.TOMScolumns
 
             # calculate angle of incident irradiance
-            irrAngle = gridAngle(p, k, indSun[1], indSun[2], AP)       
+            irrAngle = gridAngle(i, j, indSun[1], indSun[2], AP)       
             irrAngle = min(irrAngle, π / 2)
             
             # calculate incident power 
-            power = AP.irr * cellArea(p, k, AP) * cos(irrAngle)
+            power = AP.irr * cellArea(i, j, AP) * cos(irrAngle)
 
             # calculate cartesian position of grid in ECEF
-            gridRad = ind2rad(p, k, AP)
+            gridRad = ind2rad(i, j, AP)
             gridTheta = gridRad[1]
             gridPhi = gridRad[2]
             grid = CartesianFromSpherical()(Spherical(AP.radius, gridTheta, π / 2 - gridPhi))
@@ -72,7 +72,7 @@ function calculateAlbedo(AP::AlbedoParameters)
             satGridAngle = acos(dot(AP.satECEF - grid, grid) / (satDist * norm(grid)))
 
             # finally, calculate albedo value 
-            albedo[p, k] = power * AP.TOMSMatrix[p, k] * cos(satGridAngle) / (π * satDist^2)
+            albedo[i, j] = power * AP.TOMSMatrix[i, j] * cos(satGridAngle) / (π * satDist^2)
 
         end
     end
