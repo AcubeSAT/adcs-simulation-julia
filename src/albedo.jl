@@ -42,7 +42,7 @@ function grid_angle(i, j, i_sun, j_sun, AP::AlbedoParameters)
 end 
 
 function calculate_albedo(AP::AlbedoParameters)
-    sun_sph = SphericalFromCartesian()(AP.sun_ecef_)
+    sun_sph = SphericalFromCartesian()(AP.sun_ecef)
     sun_ecef_sph = [sun_sph.r, sun_sph.θ, sun_sph.ϕ]
     sun_ecef_sph[2] = π / 2 - sun_ecef_sph[2]
     ind_sun = rad2ind(sun_ecef_sph[1], sun_ecef_sph[2], AP)
