@@ -5,7 +5,7 @@
    Inputs:
      cosines      - Cosine of angle between body frame axes and orbit frame z-axis
      B_body       - Magnetic field expressed in body frame
-     Change: I removed the area input parameter
+
    Ouputs:
      res_mag_tor  - Residual magnetic torque
      rm           - Residual magnetic moment
@@ -37,7 +37,7 @@ end
      solar_rad_tor - Solar pressure torque
      area          - Satellite's area projected to the sun
      cosines       - Cosine of the angles between the body frame axes of the satellite and the sun vector transformed into the body frame
-   Change: what the cosines are
+
  ======================================================================== 
 """
 
