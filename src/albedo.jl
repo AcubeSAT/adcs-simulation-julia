@@ -18,11 +18,11 @@ function rad2ind(theta, phi, AP::AlbedoParameters)
     j = round((π + theta - AP.dx / 2) / AP.dx)
 
     k = firstindex(AP.TOMSMatrix)
-    return (ifelse(i < k, k, i), ifelse(j < k, k, j))
+    return ifelse(i < k, k, i), ifelse(j < k, k, j)
 end
 
 function ind2rad(i, j, AP::AlbedoParameters)
-    return (theta, phi) = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
+    return theta, phi = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
 end
 
 function cellArea(i, j, AP::AlbedoParameters)
