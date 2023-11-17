@@ -7,6 +7,6 @@ function get_noisy_measurements(q, gt_angular_velocity, bias, mag_ref, sun_ref, 
 
     gyroscope_measurement = gt_angular_velocity + total_noise
     mag_noisy = rotvec(mag_ref, q) + params.mag_noise * randn(3)
-    sun_noisy = rotvec(sun_ref, q) + params.sun_noise * randn(3)
+    sun_noisy = rotvec(sun_ref, q) + params.sun_noise * randn(3) + pois_rand()
     return (mag_noisy, sun_noisy, gyroscope_measurement, bias)
 end
