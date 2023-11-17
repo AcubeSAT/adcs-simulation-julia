@@ -22,7 +22,7 @@ function rad2ind(theta, phi, AP::AlbedoParameters)
 end
 
 function ind2rad(i, j, AP::AlbedoParameters)
-    return theta, phi = (-π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy)
+    return theta, phi = -π + AP.dx / 2 + j * AP.dx, π - AP.dy / 2 - i * AP.dy
 end
 
 function cell_area(i, j, AP::AlbedoParameters)
@@ -42,8 +42,8 @@ function grid_angle(i, j, i_sun, j_sun, AP::AlbedoParameters)
 end 
 
 function calculate_albedo(AP::AlbedoParameters)
-    sunSph = SphericalFromCartesian()(AP.sun_ecef_)
-    sun_ecef_sph = [sunSph.r, sunSph.θ, sunSph.ϕ]
+    sun_sph = SphericalFromCartesian()(AP.sun_ecef_)
+    sun_ecef_sph = [sun_sph.r, sun_sph.θ, sun_sph.ϕ]
     sun_ecef_sph[2] = π / 2 - sun_ecef_sph[2]
     ind_sun = rad2ind(sun_ecef_sph[1], sun_ecef_sph[2], AP)
 
