@@ -1,5 +1,5 @@
-"""
-======================================================================== 
+
+#======================================================================= 
    This function calculates the residual magnetic torque
  
    Inputs:
@@ -10,8 +10,8 @@
      res_mag_tor  - Residual magnetic torque
      rm           - Residual magnetic moment
  
- ======================================================================== 
-"""
+========================================================================#
+
 
 function residual_magnetic_torque(cosines, B_body)
     mean_rm_base = [0.05, 0.05, 0.05]
@@ -23,8 +23,8 @@ function residual_magnetic_torque(cosines, B_body)
 end
 
 
-"""
- ======================================================================== 
+
+#======================================================================== 
    This function calculates the solar pressure that acts upon
    the spacecraft.
  
@@ -38,26 +38,26 @@ end
      area          - Satellite's area projected to the sun
      cosines       - Cosine of the angles between the body frame axes of the satellite and the sun vector transformed into the body frame
 
- ======================================================================== 
-"""
+========================================================================#
+
 
 function solar_radiation_pressure(R_OB, sun_vector, cm)
-    Fs = 1367;                                          "Solar Constant [W/m^2]"
-    c  = 3e8;                                           "Speed of light [m/s]"
+    Fs = 1367;                                          #Solar Constant [W/m^2]
+    c  = 3e8;                                           #Speed of light [m/s]
     reflectance_factor = 0.6;
 
-    y_0 = -R_OB * sun_vector;                           "Sun vector in body frame"
-    y_0 = y_0 / norm(y_0);                              "Make it unit vector"
+    y_0 = -R_OB * sun_vector;                           #Sun vector in body frame
+    y_0 = y_0 / norm(y_0);                              #Make it unit vector
 
-    proj_Xb_Zo = dot([1 0 0], y_0) * y_0;               "Projection of each body frame axes unit vector to orbit frame z axis" 
+    proj_Xb_Zo = dot([1 0 0], y_0) * y_0;               #Projection of each body frame axes unit vector to orbit frame z axis 
     proj_Yb_Zo = dot([0 1 0], y_0) * y_0;           
     proj_Zb_Zo = dot([0 0 1], y_0) * y_0;
 
-    proj_Xb_XYo = [1, 0, 0] - proj_Xb_Zo;               "Projection of each body frame axes unit vector to orbit frame x,y plane"
+    proj_Xb_XYo = [1, 0, 0] - proj_Xb_Zo;               #Projection of each body frame axes unit vector to orbit frame x,y plane
     proj_Yb_XYo = [0, 1, 0] - proj_Yb_Zo;
     proj_Zb_XYo = [0, 0, 1] - proj_Zb_Zo;
 
-    Ax = 0.34 * norm(cross(proj_Yb_XYo, proj_Zb_XYo));  "Surface projections to orbit frame x,y plane"
+    Ax = 0.34 * norm(cross(proj_Yb_XYo, proj_Zb_XYo));  #Surface projections to orbit frame x,y plane
     Ay = 0.34 * norm(cross(proj_Xb_XYo, proj_Zb_XYo));
     Az = 0.1 * norm(cross(proj_Xb_XYo, proj_Yb_XYo));  
     area = [Ax Ay Az];
