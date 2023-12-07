@@ -152,7 +152,7 @@ function aerodynamic_drag(R_BO, p, Cm, v_satellite)
     T2 = 0.5 * p * aerodynamic_constant * Ay * v_satellite^2 * cross(z_ob, atmospheric_pressure_center[2,:] - Cm);
     T3 = 0.5 * p * aerodynamic_constant * Az * v_satellite^2 * cross(z_ob, atmospheric_pressure_center[3,:] - Cm);
 
-    tau_ad = T1 + T2 + T3;
+    aero_drag_tor = T1 + T2 + T3;
 
-    return tau_ad
+    return aero_drag_tor
 end
