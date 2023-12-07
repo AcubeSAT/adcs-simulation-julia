@@ -1,4 +1,3 @@
-
 #======================================================================= 
    This function calculates the residual magnetic torque
  
@@ -23,20 +22,19 @@ function residual_magnetic_torque(cosines, B_body)
 end
 
 
-
 #======================================================================== 
-   This function calculates the solar pressure that acts upon
-   the spacecraft.
- 
-   Inputs:
-     R_OB          - Transformation matrix from orbit to body frame
-     sun_vector    - Unit vector from satellite to sun expressed in orbit frame
-     cm            - Center of mass
- 
-   Ouputs:
-     solar_rad_tor - Solar pressure torque
-     area          - Satellite's area projected to the sun
-     cosines       - Cosine of the angles between the body frame axes of the satellite and the sun vector transformed into the body frame
+ This function calculates the solar pressure that acts upon
+ the spacecraft.
+
+ Inputs:
+   R_OB          - Transformation matrix from orbit to body frame
+   sun_vector    - Unit vector from satellite to sun expressed in orbit frame
+   cm            - Center of mass
+
+ Ouputs:
+   solar_rad_tor - Solar pressure torque
+   area          - Satellite's area projected to the sun
+   cosines       - Cosine of the angles between the body frame axes of the satellite and the sun vector transformed into the body frame
 
 ========================================================================#
 
@@ -80,4 +78,26 @@ function solar_radiation_pressure(R_OB, sun_vector, cm)
     solar_rad_tor = (T1+T2+T3);
 
     return solar_rad_tor, area, cosines
+end
+
+
+#========================================================================
+This function calculates the gravitational disturbance that act upon the spacecraft.
+
+Inputs:
+  q_orbit_body       - Quaternion that expresses the rotation from the orbit to the satellite body frame
+
+Ouputs:
+  grav_torque        - Gravitational torque
+
+========================================================================#
+
+function gravitational_torque(q_orbit_body)
+    constants = create_satellite_parameters()
+    R_OB = quat_to_dcm(q_orbit_body);
+    R_BO = R_OB';
+    nadir = R_BO[:,1];
+
+    grav_torque = 3 * constants.w_o^2 * cross(nadir, constants.I * nadir);
+    return grav_torque
 end
