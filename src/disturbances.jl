@@ -101,3 +101,58 @@ function gravitational_torque(q_orbit_body)
     grav_torque = 3 * constants.w_o^2 * cross(nadir, constants.I * nadir);
     return grav_torque
 end
+
+
+#======================================================================== 
+   This function calculates the aerodynamic drag that acts upon
+   the spacecraft.
+
+   Inputs:
+     R_BO          - Transformation matrix from body to orbit frame
+     p             - Atmospheric density
+     Cm            - Center of mass
+     v_satellite   - Satellite's velocity in orbit
+
+   Outputs:
+     tau_ad        - Aerodynamic torque
+
+========================================================================#
+
+function aerodynamic_drag(R_BO, p, Cm, v_satellite)
+
+    aerodynamic_constant = 2;
+
+    z_ob = vec(R_BO[:,3])                              # Orbit frame z axis expressed in the body frame
+
+    proj_Xb_Zo = vec((dot([1 0 0], z_ob)) * z_ob');    # Projection of each body frame axis unit vector to orbit frame z axis unit vector
+    proj_Yb_Zo = vec((dot([0 1 0], z_ob)) * z_ob');
+    proj_Zb_Zo = vec((dot([0 0 1], z_ob)) * z_ob');
+    
+    proj_Xb_XYo = [1, 0, 0] - proj_Xb_Zo;              # Projection of each body frame axis unit vector to orbit frame x,y plane
+    proj_Yb_XYo = [0, 1, 0] - proj_Yb_Zo;
+    proj_Zb_XYo = [0, 0, 1] - proj_Zb_Zo;
+
+    # NOTE to be discussed: The same change as before in the solar_radiation_pressure
+    Ax = 0.34 * norm(cross(proj_Yb_XYo, proj_Zb_XYo)); # Surface projections to orbit frame x,y plane
+    Ay = 0.34 * norm(cross(proj_Xb_XYo, proj_Zb_XYo));
+    Az = 0.1 * norm(cross(proj_Xb_XYo, proj_Yb_XYo));
+
+    uz_o = [0 0 1];
+
+    cos_Xb_Xo = dot(R_BO[1,:], uz_o);                  # Cosine of angle between body frame axes and orbit frame z axis
+    cos_Yb_Yo = dot(R_BO[2,:], uz_o);
+    cos_Zb_Zo = dot(R_BO[3,:], uz_o);
+
+    atmospheric_pressure_center = Diagonal([0.05, 0.05, 0.17]);
+    atmospheric_pressure_center[1,:] *= sign(cos_Xb_Xo);
+    atmospheric_pressure_center[2,:] *= sign(cos_Yb_Yo);
+    atmospheric_pressure_center[3,:] *= sign(cos_Zb_Zo);
+
+    T1 = 0.5 * p * aerodynamic_constant * Ax * v_satellite^2 * cross(z_ob, atmospheric_pressure_center[1,:] - Cm);
+    T2 = 0.5 * p * aerodynamic_constant * Ay * v_satellite^2 * cross(z_ob, atmospheric_pressure_center[2,:] - Cm);
+    T3 = 0.5 * p * aerodynamic_constant * Az * v_satellite^2 * cross(z_ob, atmospheric_pressure_center[3,:] - Cm);
+
+    tau_ad = T1 + T2 + T3;
+
+    return tau_ad
+end
