@@ -182,3 +182,14 @@ function Base.show(io::IO, Q::Quaternion{T}) where T
     print(io, ", q4: ")
     show(io, Q[4])
 end
+
+function quat_to_dcm(Q::Quaternion{T}) where {T<:Real}
+    q1, q2, q3, q4 = Q[1], Q[2], Q[3], Q[4]
+
+    return SMatrix{3,3,T}(
+        1 - 2*q3^2 - 2*q4^2,  2*q2*q3 - 2*q4*q1,    2*q2*q4 + 2*q3*q1,
+        2*q2*q3 + 2*q4*q1,    1 - 2*q2^2 - 2*q4^2,  2*q3*q4 - 2*q2*q1,
+        2*q2*q4 - 2*q3*q1,    2*q3*q4 + 2*q2*q1,    1 - 2*q2^2 - 2*q3^2
+    )
+end
+
