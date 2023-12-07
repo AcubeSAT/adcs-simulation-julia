@@ -14,6 +14,7 @@ using Plots
 using Random
 using Statistics
 
+include("constants.jl")
 include("quaternion.jl")
 include("sensor.jl") # FIXME: This is not needed for AcubeSAT, given its placement
 include("reaction_wheel.jl")
